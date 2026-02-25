@@ -1,0 +1,20 @@
+{
+  "name": "smart-assist",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:rag": "npm run dev -w apps/rag-service",
+    "build": "npm run build --workspaces --if-present",
+    "db:generate": "npm run generate -w packages/db",
+    "db:push": "npm run db:push -w packages/db",
+    "db:studio": "npm run db:studio -w packages/db"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

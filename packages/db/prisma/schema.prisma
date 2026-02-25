@@ -1,0 +1,21 @@
+// Prisma schema – PostgreSQL (Neon)
+// Set DATABASE_URL in .env to your Neon connection string:
+// postgresql://user:password@host/database?sslmode=require
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Example model – extend as needed
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
