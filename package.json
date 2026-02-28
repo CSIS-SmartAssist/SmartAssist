@@ -7,11 +7,11 @@
   ],
   "scripts": {
     "dev:web": "npm run dev -w apps/web",
-    "dev:rag": "npm run dev -w apps/rag-service",
+    "dev:rag": "npm run dev -w rag",
     "build": "npm run build --workspaces --if-present",
-    "db:generate": "npm run generate -w packages/db",
-    "db:push": "npm run db:push -w packages/db",
-    "db:studio": "npm run db:studio -w packages/db"
+    "db:generate": "npm run generate -w @smart-assist/db",
+    "db:push": "npm run db:push -w @smart-assist/db",
+    "db:studio": "npm run db:studio -w @smart-assist/db"
   },
   "devDependencies": {},
   "engines": {

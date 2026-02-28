@@ -1,2 +1,2 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("./generated/client");
 module.exports = { PrismaClient };

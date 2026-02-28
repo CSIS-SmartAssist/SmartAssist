@@ -1,21 +1,83 @@
-// Prisma schema – PostgreSQL (Neon)
-// Set DATABASE_URL in .env to your Neon connection string:
-// postgresql://user:password@host/database?sslmode=require
+// Prisma schema — public schema (Next.js only)
+// PostgreSQL (Neon). rag schema = raw SQL in migrations/001_rag_schema.sql
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Example model – extend as needed
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocSource {
+  DIRECT_UPLOAD
+  GOOGLE_DRIVE
+}
+
+enum IngestionStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
 model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+
+  bookings Booking[]
+}
+
+model Room {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name      String
+  location  String
+  capacity  Int
+  amenities String[]
+
+  bookings Booking[]
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  roomId    String
+  startTime DateTime
+  endTime   DateTime
+  reason    String
+  status    BookingStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+}
+
+model Document {
+  id               String          @id @default(cuid())
+  filename         String
+  source           DocSource
+  driveFileId      String?
+  mimeType         String
+  checksum         String?
+  lastModified     DateTime?
+  ingestionStatus  IngestionStatus @default(PENDING)
+  ingestedAt       DateTime?
+  errorMessage     String?
+  createdAt        DateTime        @default(now())
 }

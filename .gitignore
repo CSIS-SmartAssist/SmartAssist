@@ -33,7 +33,12 @@ venv/
 
 # Prisma
 packages/db/node_modules/
+packages/db/generated/
 
 # Debug / logs
 npm-debug.log*
 *.log
+
+
+#Mit PC
+.cursorrules
