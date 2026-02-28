@@ -11,9 +11,12 @@
     "build": "npm run build --workspaces --if-present",
     "db:generate": "npm run generate -w @smart-assist/db",
     "db:push": "npm run db:push -w @smart-assist/db",
-    "db:studio": "npm run db:studio -w @smart-assist/db"
+    "db:studio": "npm run db:studio -w @smart-assist/db",
+    "prepare": "husky"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "husky": "^9.0.11"
+  },
   "engines": {
     "node": ">=18"
   }

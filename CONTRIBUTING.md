@@ -51,3 +51,14 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
 - `refactor: extract RAG client to lib`
 - `chore: bump prisma to 7.0.1`
 - `test: add unit tests for booking conflict check`
+
+---
+
+## Git hooks (automatic)
+
+On `npm install`, [Husky](https://github.com/typicode/husky) configures Git hooks:
+
+- **pre-commit** — Validates branch name. Commits are blocked unless the branch matches `^(feature|bugfix|update|release)/[a-z0-9._-]+$` or is `main` / `development`.
+- **commit-msg** — Validates conventional commit format. The first line must be `<type>: <description>` with a valid type.
+
+Scripts live in `scripts/git-hooks/`. No manual setup required after clone + `npm install`.
