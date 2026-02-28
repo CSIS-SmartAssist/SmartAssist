@@ -138,6 +138,12 @@ body {
   min-height: 100vh;
 }
 
+/* Theme-aware visibility (class-based, not media query) */
+.light-only { display: block; }
+.dark-only { display: none; }
+html.dark .light-only { display: none; }
+html.dark .dark-only { display: block; }
+
 /* Focus ring using design token */
 *:focus-visible {
   outline: 2px solid var(--border-focus);

@@ -1,25 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
-export const ThemeToggle = () => {
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+interface ThemeToggleProps {
+  className?: string;
+  showLabel?: boolean;
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+export const ThemeToggle = ({
+  className = "",
+  showLabel = false,
+}: ThemeToggleProps) => {
+  const { setTheme, resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const toggle = () => {
-    const next = resolvedTheme === "dark" ? "light" : "dark";
-    setTheme(next);
+    setTheme(isDark ? "light" : "dark");
   };
 
-  if (!mounted) {
+  if (resolvedTheme == null) {
     return (
-      <span className="rounded-lg border border-border bg-background-secondary px-3 py-2 text-sm font-medium text-foreground-secondary">
-        …
+      <span
+        className={`inline-flex items-center self-start rounded-full border border-border bg-background-secondary px-4 py-2 ${className}`}
+        aria-hidden
+      >
+        <span className="text-xl">🌙</span>
+        {showLabel && (
+          <span className="ml-1 text-sm font-medium text-foreground">Dark</span>
+        )}
       </span>
     );
   }
@@ -28,10 +36,15 @@ export const ThemeToggle = () => {
     <button
       type="button"
       onClick={toggle}
-      className="rounded-lg border border-border bg-background-secondary px-3 py-2 text-sm font-medium text-foreground hover:bg-background-tertiary"
-      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+      className={`cursor-pointer inline-flex items-center self-start rounded-full border border-border bg-background-secondary px-4 py-2 text-foreground transition-opacity hover:opacity-90 active:opacity-70 ${className}`}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
-      {resolvedTheme === "dark" ? "Light" : "Dark"}
+      <span className="text-xl leading-none">{isDark ? "☀️" : "🌙"}</span>
+      {showLabel && (
+        <span className="ml-1 text-sm font-medium text-foreground">
+          {isDark ? "Light" : "Dark"}
+        </span>
+      )}
     </button>
   );
 };
