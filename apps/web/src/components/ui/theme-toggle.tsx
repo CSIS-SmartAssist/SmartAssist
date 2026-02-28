@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
-/**
- * Use this to toggle light/dark in the app.
- * Waits for mount so resolvedTheme is correct (avoids hydration + wrong initial toggle).
- */
-export function ThemeToggle() {
+export const ThemeToggle = () => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -38,4 +34,4 @@ export function ThemeToggle() {
       {resolvedTheme === "dark" ? "Light" : "Dark"}
     </button>
   );
-}
+};

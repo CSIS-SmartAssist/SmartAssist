@@ -8,11 +8,17 @@ type Booking = {
   reason: string;
 };
 
-type Props = { bookings: Booking[]; onApprove: (id: string) => void; onReject: (id: string) => void };
+type Props = {
+  bookings: Booking[];
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+};
 
-export function BookingsTable({ bookings, onApprove, onReject }: Props) {
+export const BookingsTable = ({ bookings, onApprove, onReject }: Props) => {
   if (bookings.length === 0) {
-    return <p className="text-muted-foreground text-sm">No pending bookings.</p>;
+    return (
+      <p className="text-muted-foreground text-sm">No pending bookings.</p>
+    );
   }
   return (
     <div className="overflow-x-auto">
@@ -34,8 +40,12 @@ export function BookingsTable({ bookings, onApprove, onReject }: Props) {
               <td>{b.time}</td>
               <td>{b.reason}</td>
               <td>
-                <button type="button" onClick={() => onApprove(b.id)}>Approve</button>
-                <button type="button" onClick={() => onReject(b.id)}>Reject</button>
+                <button type="button" onClick={() => onApprove(b.id)}>
+                  Approve
+                </button>
+                <button type="button" onClick={() => onReject(b.id)}>
+                  Reject
+                </button>
               </td>
             </tr>
           ))}
@@ -43,4 +53,4 @@ export function BookingsTable({ bookings, onApprove, onReject }: Props) {
       </table>
     </div>
   );
-}
+};

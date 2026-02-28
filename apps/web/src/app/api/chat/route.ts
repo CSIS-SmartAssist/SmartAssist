@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { queryRag } from "@/lib/rag-client";
+import * as logger from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const session = await getServerSession(authConfig);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,10 +22,10 @@ export async function POST(request: Request) {
     const result = await queryRag(message);
     return NextResponse.json(result);
   } catch (err) {
-    console.error("Chat API error:", err);
+    logger.logApi("error", "/api/chat", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: "Failed to get response" },
       { status: 500 }
     );
   }
-}
+};
