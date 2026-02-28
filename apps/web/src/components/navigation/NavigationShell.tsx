@@ -86,7 +86,7 @@ export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShe
                 href={link.href}
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? `${theme.accentBg} border-l-3 ${theme.accentBorder} ${theme.text} shadow-sm`
+                    ? `${theme.accentBg} border-l-[3px] ${theme.accentBorder} ${theme.text} shadow-sm`
                     : `${theme.secondaryText} hover:${theme.accentBg}`
                 }`}
               >
