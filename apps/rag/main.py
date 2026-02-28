@@ -1,30 +1,46 @@
-"""
-CSIS SmartAssist — RAG microservice.
-All RAG logic: query, ingestion, embeddings, vector search.
-Protected by x-internal-secret; only Next.js calls this service.
-"""
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
-from core.config import settings
 from routers import query, ingest
+from core.config import settings
 
-app = FastAPI(title="CSIS SmartAssist RAG", version="0.1.0")
+app = FastAPI(title="CSIS SmartAssist RAG Service")
 
-if settings.cors_origins:
-    origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# CORS — only allow Next.js to call this
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # add Vercel URL later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app.include_router(query.router, prefix="/rag", tags=["query"])
-app.include_router(ingest.router, prefix="/rag", tags=["ingest"])
+# Internal secret check — every request must have the right header
+@app.middleware("http")
+async def verify_internal_secret(request: Request, call_next):
+    path = request.url.path
 
+    # Normalize path to handle trailing slashes (e.g., "/health/").
+    if path != "/" and path.endswith("/"):
+        normalized_path = path.rstrip("/")
+    else:
+        normalized_path = path
+
+    # Paths that should bypass the internal secret check (health and docs).
+    allowed_paths = {"/health"}
+    for docs_path in (app.docs_url, app.openapi_url, app.redoc_url):
+        if docs_path:
+            allowed_paths.add(docs_path)
+
+    if normalized_path in allowed_paths:
+        return await call_next(request)
+    secret = request.headers.get("x-internal-secret")
+    if secret != settings.internal_secret:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return await call_next(request)
+
+app.include_router(query.router, prefix="/rag")
+app.include_router(ingest.router, prefix="/rag")
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "rag"}
+    return {"status": "ok"}
