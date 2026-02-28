@@ -14,7 +14,7 @@
   --background: #fafafa;
   --background-secondary: #f0f0f0;
   --background-tertiary: #e5e5e5;
-  --background-accent: #f3e8ff;
+  --background-accent: #eff6ff;
 
   /* Text */
   --foreground: #171717;
@@ -22,10 +22,10 @@
   --foreground-muted: #a3a3a3;
   --foreground-on-accent: #ffffff;
 
-  /* Accent / Brand — keep purple primary */
-  --primary: #7c3aed;
-  --primary-hover: #6d28d9;
-  --primary-muted: #ede9fe;
+  /* Accent / Brand — blue primary (no purple) */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-muted: #dbeafe;
   --primary-foreground: #ffffff;
   --accent-teal: #0d9488;
   --accent-green: #16a34a;
@@ -35,7 +35,7 @@
   /* Borders */
   --border: #e5e5e5;
   --border-strong: #d4d4d4;
-  --border-focus: #7c3aed;
+  --border-focus: #2563eb;
 
   /* Shadows (light) */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -64,20 +64,20 @@
   --accent-foreground: #171717;
   --destructive: #dc2626;
   --input: #e5e5e5;
-  --ring: #7c3aed;
-  --chart-1: #7c3aed;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
   --chart-2: #0d9488;
   --chart-3: #16a34a;
   --chart-4: #ea580c;
-  --chart-5: #6d28d9;
+  --chart-5: #1d4ed8;
   --sidebar: #fafafa;
   --sidebar-foreground: #171717;
-  --sidebar-primary: #7c3aed;
+  --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f0f0f0;
   --sidebar-accent-foreground: #171717;
   --sidebar-border: #e5e5e5;
-  --sidebar-ring: #7c3aed;
+  --sidebar-ring: #2563eb;
 }
 
 /* Dark theme: only when html has class="dark" (set by next-themes) */
@@ -86,7 +86,7 @@ html.dark {
   --background: #0f0f12;
   --background-secondary: #18181b;
   --background-tertiary: #27272a;
-  --background-accent: #2e1065;
+  --background-accent: #1e3a8a;
 
   /* Text */
   --foreground: #fafafa;
@@ -94,10 +94,10 @@ html.dark {
   --foreground-muted: #71717a;
   --foreground-on-accent: #ffffff;
 
-  /* Accent / Brand (vibrant on dark) */
-  --primary: #8b5cf6;
-  --primary-hover: #a78bfa;
-  --primary-muted: #3b0764;
+  /* Accent / Brand — blue on dark (no purple) */
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-muted: #1e3a8a;
   --primary-foreground: #ffffff;
   --accent-teal: #2dd4bf;
   --accent-green: #22c55e;
@@ -107,7 +107,7 @@ html.dark {
   /* Borders */
   --border: #27272a;
   --border-strong: #3f3f46;
-  --border-focus: #2dd4bf;
+  --border-focus: #3b82f6;
 
   /* Shadows (dark: subtle or none) */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
@@ -128,20 +128,20 @@ html.dark {
   --accent-foreground: #fafafa;
   --destructive: #ef4444;
   --input: #3f3f46;
-  --ring: #2dd4bf;
-  --chart-1: #8b5cf6;
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
   --chart-2: #2dd4bf;
   --chart-3: #22c55e;
   --chart-4: #fb923c;
-  --chart-5: #a78bfa;
+  --chart-5: #60a5fa;
   --sidebar: #18181b;
   --sidebar-foreground: #fafafa;
-  --sidebar-primary: #8b5cf6;
+  --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #27272a;
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: #27272a;
-  --sidebar-ring: #2dd4bf;
+  --sidebar-ring: #3b82f6;
 }
 
 /* =============================================================================
@@ -290,21 +290,21 @@ html.dark .dark-only { display: block; }
   animation: glow-drift 8s ease-in-out infinite;
 }
 
-/* Light mode orbs — visible purple/violet wash */
+/* Light mode orbs — blue wash (matches primary) */
 .glow-orb-primary {
   background: radial-gradient(
     circle,
-    rgba(124, 58, 237, 0.35) 0%,
-    rgba(139, 92, 246, 0.15) 45%,
-    rgba(124, 58, 237, 0.04) 70%,
+    rgba(37, 99, 235, 0.35) 0%,
+    rgba(59, 130, 246, 0.15) 45%,
+    rgba(37, 99, 235, 0.04) 70%,
     transparent 85%
   );
 }
 .glow-orb-secondary {
   background: radial-gradient(
     circle,
-    rgba(139, 92, 246, 0.28) 0%,
-    rgba(124, 58, 237, 0.1) 50%,
+    rgba(59, 130, 246, 0.28) 0%,
+    rgba(37, 99, 235, 0.1) 50%,
     transparent 80%
   );
 }
@@ -328,12 +328,12 @@ html.dark .glow-orb-secondary {
   );
 }
 
-/* Card neon halo */
+/* Card neon halo — light: blue, dark: teal neon */
 .neon-card {
   box-shadow:
-    0 0 0 1px rgba(124, 58, 237, 0.12),
-    0 4px 30px -4px rgba(124, 58, 237, 0.18),
-    0 12px 50px -8px rgba(139, 92, 246, 0.1);
+    0 0 0 1px rgba(37, 99, 235, 0.12),
+    0 4px 30px -4px rgba(37, 99, 235, 0.18),
+    0 12px 50px -8px rgba(59, 130, 246, 0.1);
 }
 html.dark .neon-card {
   box-shadow:
@@ -342,11 +342,11 @@ html.dark .neon-card {
     0 0 60px -10px rgba(45, 212, 191, 0.1);
 }
 
-/* Heading text glow */
+/* Heading text glow — light: blue, dark: teal neon */
 .text-glow {
   text-shadow:
-    0 0 24px rgba(124, 58, 237, 0.35),
-    0 0 48px rgba(139, 92, 246, 0.15);
+    0 0 24px rgba(37, 99, 235, 0.35),
+    0 0 48px rgba(59, 130, 246, 0.15);
 }
 html.dark .text-glow {
   text-shadow:
@@ -361,7 +361,7 @@ html.dark .text-glow {
     border-color 0.3s ease;
 }
 .feature-card-glow:hover {
-  box-shadow: 0 0 20px -4px rgba(124, 58, 237, 0.22);
+  box-shadow: 0 0 20px -4px rgba(37, 99, 235, 0.22);
 }
 html.dark .feature-card-glow:hover {
   box-shadow: 0 0 24px -4px rgba(45, 212, 191, 0.28);
@@ -369,7 +369,7 @@ html.dark .feature-card-glow:hover {
 
 /* Badge glow (syncing badge) */
 .badge-glow {
-  box-shadow: 0 0 14px -2px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 0 14px -2px rgba(37, 99, 235, 0.25);
 }
 html.dark .badge-glow {
   box-shadow: 0 0 14px -2px rgba(45, 212, 191, 0.35);
