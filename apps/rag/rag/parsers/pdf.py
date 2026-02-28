@@ -1,5 +1,9 @@
-"""PDF text extraction via PyMuPDF."""
-# TODO: def extract_text_from_pdf(bytes) -> str
+import fitz  # PyMuPDF
 
-def extract(bytes_content: bytes) -> str:
-    return ""
+def parse_pdf(file_bytes: bytes) -> str:
+    doc = fitz.open(stream=file_bytes, filetype="pdf")
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()
+    return text.strip()

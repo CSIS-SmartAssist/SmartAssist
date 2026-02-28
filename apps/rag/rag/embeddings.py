@@ -1,5 +1,8 @@
-"""sentence-transformers wrapper. Model: all-MiniLM-L6-v2 (384 dims)."""
-# TODO: Load model once, expose encode(texts) -> list[list[float]]
+from sentence_transformers import SentenceTransformer
 
-def get_embedder():
-    raise NotImplementedError("get_embedder() to be implemented")
+# Loads once when the module is imported — stays in memory
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+def generate_embeddings(texts: list[str]) -> list[list[float]]:
+    embeddings = model.encode(texts, show_progress_bar=False)
+    return embeddings.tolist()

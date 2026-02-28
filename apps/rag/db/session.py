@@ -1,20 +1,15 @@
-"""Pg connection pool to Neon. Used by vector_store and ingest."""
-import os
-from contextlib import contextmanager
-
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2 import pool
+from core.config import settings
 
-# Connection is created from env DATABASE_URL
+connection_pool = pool.SimpleConnectionPool(
+    minconn=1,
+    maxconn=10,
+    dsn=settings.database_url
+)
+
 def get_connection():
-    return psycopg2.connect(os.environ.get("DATABASE_URL", ""), cursor_factory=RealDictCursor)
+    return connection_pool.getconn()
 
-
-@contextmanager
-def get_cursor():
-    conn = get_connection()
-    try:
-        yield conn.cursor()
-        conn.commit()
-    finally:
-        conn.close()
+def release_connection(conn):
+    connection_pool.putconn(conn)

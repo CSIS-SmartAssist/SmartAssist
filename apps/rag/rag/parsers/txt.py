@@ -1,5 +1,2 @@
-"""Plain text — decode utf-8."""
-# TODO: def extract_text_from_txt(bytes) -> str
-
-def extract(bytes_content: bytes) -> str:
-    return bytes_content.decode("utf-8", errors="replace")
+def parse_txt(file_bytes: bytes) -> str:
+    return file_bytes.decode("utf-8", errors="ignore").strip()

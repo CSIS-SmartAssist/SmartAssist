@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     google_drive_folder_id: str = ""
     google_service_account_json: str = ""
-    cors_origins: str = ""  # Comma-separated, e.g. https://app.vercel.app,http://localhost:3000
+    cors_origins: str = ""
 
     class Config:
         env_file = ".env"
