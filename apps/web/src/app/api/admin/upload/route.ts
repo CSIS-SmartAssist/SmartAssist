@@ -1,30 +1,63 @@
-// POST /api/admin/upload — push file to Drive, DB record, call FastAPI ingest (Vedant)
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
-import { protect } from "@/lib/arcjet";
-import { requireAdmin } from "@/lib/middleware";
-import * as logger from "@/lib/logger";
+export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
-export const POST = async (request: Request) => {
-  const { deniedResponse } = await protect(request);
-  if (deniedResponse) return deniedResponse;
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
 
-  const session = await getServerSession(authConfig);
-  const allowed = await requireAdmin(session);
-  if (!allowed) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+    }
+
+    const document = await prisma.document.create({
+      data: {
+        filename: file.name,
+        source: "DIRECT_UPLOAD",
+        mimeType: file.type,
+        ingestionStatus: "PENDING",
+      },
+    });
+
+    const ragFormData = new FormData();
+    ragFormData.append("file", file);
+    ragFormData.append("document_id", document.id);
+
+    const ragResponse = await fetch(
+      `${process.env.RAG_SERVICE_URL}/rag/ingest/file`,
+      {
+        method: "POST",
+        headers: { "x-internal-secret": process.env.INTERNAL_SECRET! },
+        body: ragFormData,
+      }
+    );
+
+    if (!ragResponse.ok) {
+      await prisma.document.update({
+        where: { id: document.id },
+        data: { ingestionStatus: "FAILED", errorMessage: "RAG service error" },
+      });
+      return NextResponse.json({ error: "Ingestion failed" }, { status: 500 });
+    }
+
+    await prisma.document.update({
+      where: { id: document.id },
+      data: { ingestionStatus: "DONE", ingestedAt: new Date() },
+    });
+
+    return NextResponse.json(document, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
+}
 
-  const formData = await request.formData();
-  const file = formData.get("file") as File | null;
-  if (!file) {
-    return NextResponse.json({ error: "No file" }, { status: 400 });
-  }
-
-  logger.logApi("request", "/api/admin/upload", { fileName: file.name, size: file.size });
-
-  // TODO: push to Drive, create Document record, call FastAPI POST /rag/ingest/file
-  return NextResponse.json({ ok: true });
-};
