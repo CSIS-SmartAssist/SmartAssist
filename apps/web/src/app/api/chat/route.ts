@@ -3,10 +3,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { protect } from "@/lib/arcjet";
 import { queryRag } from "@/lib/rag-client";
 import * as logger from "@/lib/logger";
 
 export const POST = async (request: Request) => {
+  const { deniedResponse } = await protect(request);
+  if (deniedResponse) return deniedResponse;
+
   const session = await getServerSession(authConfig);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
