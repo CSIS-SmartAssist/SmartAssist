@@ -4,7 +4,7 @@ uvicorn[standard]==0.32.0
 python-multipart==0.0.12
 
 # Database
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.11
 pgvector==0.3.6
 
 # RAG + Embeddings
