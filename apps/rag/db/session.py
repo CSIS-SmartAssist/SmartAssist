@@ -1,26 +1,27 @@
 import psycopg2
 from psycopg2 import pool
 from pgvector.psycopg2 import register_vector
-from core.config import settings
 
-def create_pool():
-    p = pool.SimpleConnectionPool(
-        minconn=1,
-        maxconn=10,
-        dsn=settings.database_url
-    )
-    # Register vector type on a connection so psycopg2 understands it
-    conn = p.getconn()
-    register_vector(conn)
-    p.putconn(conn)
-    return p
+_pool = None
 
-connection_pool = create_pool()
+def get_pool():
+    global _pool
+    if _pool is None:
+        from core.config import settings
+        _pool = pool.SimpleConnectionPool(
+            minconn=1,
+            maxconn=10,
+            dsn=settings.database_url
+        )
+        conn = _pool.getconn()
+        register_vector(conn)
+        _pool.putconn(conn)
+    return _pool
 
 def get_connection():
-    conn = connection_pool.getconn()
+    conn = get_pool().getconn()
     register_vector(conn)
     return conn
 
 def release_connection(conn):
-    connection_pool.putconn(conn)
+    get_pool().putconn(conn)
