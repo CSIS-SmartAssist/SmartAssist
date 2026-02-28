@@ -238,7 +238,7 @@ export default function DashboardPage() {
                         Due: {task.dueDate}
                       </p>
                     </div>
-                  ))})
+                  ))}
                 </div>
               </div>
 
