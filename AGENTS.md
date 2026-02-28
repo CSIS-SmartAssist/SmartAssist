@@ -75,9 +75,19 @@ Every PR must:
 
 ## 3.3 Logging Standard
 
-* Log errors with context.
-* Never log full document contents.
+* **All code MUST use the global logger utility** (`apps/web/src/lib/logger.ts`) — raw `console.*` calls are forbidden outside the logger itself.
+* Import as: `import * as logger from "@/lib/logger";`
+* Use the correct contextual logger:
+  * `logger.logApi("error" | "request" | "response", endpoint, details)` — API route handlers
+  * `logger.logAuth("signIn" | "signOut" | "session" | "error", details)` — Auth flows
+  * `logger.logDb(operation, details)` — Database operations (Prisma, raw SQL)
+  * `logger.logEvent(eventName, payload)` — Background jobs, cron, Inngest functions
+  * `logger.error(tag, ...args)` / `logger.warn(tag, ...args)` — General errors/warnings
+  * `logger.info(tag, ...args)` / `logger.debug(tag, ...args)` — Dev-only diagnostics
+* Every `catch` block MUST log the error with context (operation name, entity IDs, error message) before returning or rethrowing.
+* Never log sensitive data: passwords, tokens, secrets, full credentials, or full document contents.
 * Log retrieval scores and ingestion state transitions.
+* **When adding any new feature, API route, component with error handling, or lib module — integrate the logger from the start. This is not optional.**
 
 ---
 

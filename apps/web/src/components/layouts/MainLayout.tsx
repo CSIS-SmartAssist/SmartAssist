@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import { ReactNode } from "react";
 import { useTheme } from "next-themes";
@@ -11,7 +12,7 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export const MainLayout = ({ children }: MainLayoutProps) => {
   const { theme } = useTheme();
   const pathname = usePathname();
 
@@ -27,4 +28,4 @@ export function MainLayout({ children }: MainLayoutProps) {
       <MobileBottomNav />
     </>
   );
-}
+};
