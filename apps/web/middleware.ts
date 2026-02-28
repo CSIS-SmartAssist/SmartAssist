@@ -26,8 +26,10 @@ export async function middleware(request: NextRequest) {
   }
 
   if (ADMIN_PATHS.some((p) => path.startsWith(p))) {
-    // TODO: check role from token or DB — if not ADMIN, redirect to /
-    // For now allow; requireAdmin() in API routes does server-side check
+    const role = token.role as string | undefined;
+    if (role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   return NextResponse.next();

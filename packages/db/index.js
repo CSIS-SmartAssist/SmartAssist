@@ -1,2 +1,2 @@
-const { PrismaClient } = require("./generated/client");
-module.exports = { PrismaClient };
+const { PrismaClient, Role } = require("./generated/client");
+module.exports = { PrismaClient, Role };
