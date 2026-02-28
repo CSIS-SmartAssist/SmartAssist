@@ -27,7 +27,11 @@ export const ChatInput = ({ onSend, disabled }: Props) => (
       className="flex-1 rounded-md border px-3 py-2"
       disabled={disabled}
     />
-    <button type="submit" disabled={disabled} className="rounded-md bg-primary px-4 py-2 text-primary-foreground">
+    <button
+      type="submit"
+      disabled={disabled}
+      className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+    >
       Send
     </button>
   </form>

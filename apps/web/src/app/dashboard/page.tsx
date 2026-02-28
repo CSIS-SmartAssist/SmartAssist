@@ -191,7 +191,7 @@ const DashboardPage = () => {
                       className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200`}
                     >
                       <div
-                        className={`h-24 ${isDark ? "bg-gradient-to-br from-slate-700 to-slate-800" : "bg-gradient-to-br from-slate-200 to-slate-300"} flex items-center justify-center relative`}
+                        className={`h-24 ${isDark ? "bg-linear-to-br from-slate-700 to-slate-800" : "bg-linear-to-br from-slate-200 to-slate-300"} flex items-center justify-center relative`}
                       >
                         <div
                           className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}

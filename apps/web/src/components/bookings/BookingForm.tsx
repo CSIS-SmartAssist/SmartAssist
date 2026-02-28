@@ -3,6 +3,8 @@
 export const BookingForm = () => (
   <form className="flex flex-col gap-4 max-w-md">
     {/* TODO: room select, start/end datetime, reason textarea, submit */}
-    <p className="text-muted-foreground text-sm">BookingForm — wire to /api/bookings/request</p>
+    <p className="text-muted-foreground text-sm">
+      BookingForm — wire to /api/bookings/request
+    </p>
   </form>
 );

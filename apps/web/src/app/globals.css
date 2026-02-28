@@ -35,7 +35,8 @@
   /* Shadows (light) */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* Radius */
   --radius-sm: 0.25rem;
@@ -76,7 +77,8 @@ html.dark {
   /* Shadows (dark: subtle or none) */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
 
 /* =============================================================================
@@ -147,14 +149,28 @@ body {
    ============================================================================= */
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50%      { opacity: 0.85; transform: scale(1.08); }
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
 }
 
 @keyframes glow-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%      { transform: translate(12px, -8px) scale(1.04); }
-  66%      { transform: translate(-8px, 6px) scale(0.97); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(12px, -8px) scale(1.04);
+  }
+  66% {
+    transform: translate(-8px, 6px) scale(0.97);
+  }
 }
 
 .glow-orb {
@@ -179,18 +195,40 @@ body {
 
 /* Light mode orbs — visible purple/violet wash */
 .glow-orb-primary {
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.35) 0%, rgba(139, 92, 246, 0.15) 45%, rgba(124, 58, 237, 0.04) 70%, transparent 85%);
+  background: radial-gradient(
+    circle,
+    rgba(124, 58, 237, 0.35) 0%,
+    rgba(139, 92, 246, 0.15) 45%,
+    rgba(124, 58, 237, 0.04) 70%,
+    transparent 85%
+  );
 }
 .glow-orb-secondary {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, rgba(124, 58, 237, 0.10) 50%, transparent 80%);
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.28) 0%,
+    rgba(124, 58, 237, 0.1) 50%,
+    transparent 80%
+  );
 }
 
 /* Dark mode orbs — vivid teal/cyan neon */
 html.dark .glow-orb-primary {
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.30) 0%, rgba(45, 212, 191, 0.10) 45%, rgba(45, 212, 191, 0.03) 70%, transparent 85%);
+  background: radial-gradient(
+    circle,
+    rgba(45, 212, 191, 0.3) 0%,
+    rgba(45, 212, 191, 0.1) 45%,
+    rgba(45, 212, 191, 0.03) 70%,
+    transparent 85%
+  );
 }
 html.dark .glow-orb-secondary {
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.22) 0%, rgba(45, 212, 191, 0.06) 50%, transparent 80%);
+  background: radial-gradient(
+    circle,
+    rgba(45, 212, 191, 0.22) 0%,
+    rgba(45, 212, 191, 0.06) 50%,
+    transparent 80%
+  );
 }
 
 /* Card neon halo */
@@ -198,26 +236,32 @@ html.dark .glow-orb-secondary {
   box-shadow:
     0 0 0 1px rgba(124, 58, 237, 0.12),
     0 4px 30px -4px rgba(124, 58, 237, 0.18),
-    0 12px 50px -8px rgba(139, 92, 246, 0.10);
+    0 12px 50px -8px rgba(139, 92, 246, 0.1);
 }
 html.dark .neon-card {
   box-shadow:
     0 0 0 1px rgba(45, 212, 191, 0.12),
     0 0 30px -5px rgba(45, 212, 191, 0.22),
-    0 0 60px -10px rgba(45, 212, 191, 0.10);
+    0 0 60px -10px rgba(45, 212, 191, 0.1);
 }
 
 /* Heading text glow */
 .text-glow {
-  text-shadow: 0 0 24px rgba(124, 58, 237, 0.35), 0 0 48px rgba(139, 92, 246, 0.15);
+  text-shadow:
+    0 0 24px rgba(124, 58, 237, 0.35),
+    0 0 48px rgba(139, 92, 246, 0.15);
 }
 html.dark .text-glow {
-  text-shadow: 0 0 24px rgba(45, 212, 191, 0.40), 0 0 56px rgba(45, 212, 191, 0.18);
+  text-shadow:
+    0 0 24px rgba(45, 212, 191, 0.4),
+    0 0 56px rgba(45, 212, 191, 0.18);
 }
 
 /* Feature card glow border on hover */
 .feature-card-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 .feature-card-glow:hover {
   box-shadow: 0 0 20px -4px rgba(124, 58, 237, 0.22);

@@ -6,7 +6,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
-import { SmartAssistLogo, RoutingIcon, SyncIcon, KeyIcon, GoogleColorIcon } from "./_components/icons";
+import {
+  SmartAssistLogo,
+  RoutingIcon,
+  SyncIcon,
+  KeyIcon,
+  GoogleColorIcon,
+} from "./_components/icons";
 import { FeatureCard } from "./_components/feature-card";
 import { CourseBadge } from "./_components/course-badge";
 

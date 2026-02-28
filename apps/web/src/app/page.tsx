@@ -13,7 +13,8 @@ const Home = () => (
           Elevate your academic journey
         </h1>
         <p className="max-w-md text-lg leading-relaxed text-foreground-secondary">
-          Ask questions, book rooms, and get answers with citations — all in one place.
+          Ask questions, book rooms, and get answers with citations — all in one
+          place.
         </p>
       </div>
       <div className="flex flex-col gap-4 sm:flex-row">
