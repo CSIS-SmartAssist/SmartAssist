@@ -1,4 +1,3 @@
-import psycopg2
 from psycopg2 import pool
 from pgvector.psycopg2 import register_vector
 
