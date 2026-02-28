@@ -55,7 +55,7 @@ export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShe
 
   return (
     <aside
-      className={`w-72 h-screen flex flex-col ${theme.asideBg} border border-solid rounded-3xl m-3 backdrop-blur-md shadow-xl`}
+      className={`w-72 h-full flex flex-col ${theme.asideBg} border border-solid rounded-3xl mx-3 backdrop-blur-md shadow-xl`}
     >
         {/* Header */}
         <div className={`p-6 border-b border-opacity-10 border-current`}>
