@@ -3,6 +3,7 @@ from psycopg2.extras import execute_values
 
 def save_chunks(document_id: str, chunks: list[str], embeddings: list[list[float]]):
     conn = get_connection()
+    cur = None
     try:
         cur = conn.cursor()
 
@@ -26,9 +27,10 @@ def save_chunks(document_id: str, chunks: list[str], embeddings: list[list[float
         )
 
         conn.commit()
-        cur.close()
     except Exception as e:
         conn.rollback()
         raise e
     finally:
+        if cur:
+            cur.close()
         release_connection(conn)
