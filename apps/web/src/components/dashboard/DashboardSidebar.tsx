@@ -49,7 +49,8 @@ export const DashboardSidebar = ({
     setSigningOut(true);
     try {
       await signOut({ callbackUrl: "/", redirect: true });
-    } finally {
+      // On success we redirect; spinner stays until page unmounts
+    } catch {
       setSigningOut(false);
     }
   };
