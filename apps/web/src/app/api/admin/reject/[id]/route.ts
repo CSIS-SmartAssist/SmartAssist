@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
 export async function POST(
   _request: Request,
@@ -23,8 +24,10 @@ export async function POST(
       data: { status: "REJECTED" },
     });
 
+    logger.logDb("booking.reject", { bookingId: id });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/admin/reject", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to reject booking" }, { status: 500 });
   }
 }

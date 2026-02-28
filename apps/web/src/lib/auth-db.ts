@@ -4,6 +4,7 @@
 
 import { randomUUID } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
+import * as logger from "@/lib/logger";
 
 function getSQL() {
   const url = process.env.DATABASE_URL;
@@ -19,6 +20,7 @@ export interface AuthUserRow {
 export async function getAuthUserByEmail(email: string): Promise<AuthUserRow | null> {
   const sql = getSQL();
   const rows = await sql`SELECT id, role FROM "User" WHERE email = ${email} LIMIT 1`;
+  logger.logDb("getAuthUserByEmail", { email, found: rows.length > 0 });
   return (rows[0] as AuthUserRow | undefined) ?? null;
 }
 
@@ -32,9 +34,11 @@ export async function createAuthUser(params: {
   const id = randomUUID();
   await sql`INSERT INTO "User" (id, email, name, "passwordHash", role, "createdAt")
      VALUES (${id}, ${params.email}, ${params.name}, ${params.passwordHash}, ${params.role}::"Role", NOW())`;
+  logger.logDb("createAuthUser", { id, email: params.email, role: params.role });
 }
 
 export async function updateAuthUserRole(email: string, role: "USER" | "ADMIN"): Promise<void> {
   const sql = getSQL();
   await sql`UPDATE "User" SET role = ${role}::"Role" WHERE email = ${email}`;
+  logger.logDb("updateAuthUserRole", { email, role });
 }

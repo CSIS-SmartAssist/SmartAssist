@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import * as logger from "@/lib/logger";
 
 const ALLOWED_DOMAIN = "goa.bits-pilani.ac.in";
 
@@ -27,7 +28,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signIn("google", { callbackUrl: "/", redirect: true });
-    } catch {
+    } catch (err) {
+      logger.logAuth("error", { phase: "studentSignIn", message: err instanceof Error ? err.message : String(err) });
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
@@ -54,7 +56,8 @@ export default function LoginPage() {
         return;
       }
       await signIn("google", { callbackUrl: "/admin", redirect: true });
-    } catch {
+    } catch (err) {
+      logger.logAuth("error", { phase: "adminSignIn", message: err instanceof Error ? err.message : String(err) });
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);

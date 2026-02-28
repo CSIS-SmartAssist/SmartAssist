@@ -2,6 +2,7 @@
 
 import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
 export async function requireAdmin(session: Session | null): Promise<boolean> {
   const email = session?.user?.email;
@@ -14,7 +15,8 @@ export async function requireAdmin(session: Session | null): Promise<boolean> {
     });
 
     return user?.role === "ADMIN";
-  } catch {
+  } catch (err) {
+    logger.error("requireAdmin", err instanceof Error ? err.message : String(err));
     return false;
   }
 }
