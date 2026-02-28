@@ -73,7 +73,17 @@ Every PR must:
 * Confirm no breaking env variable changes
 * Confirm deployment impact (if any)
 
-## 3.3 Logging Standard
+## 3.3 Use Design System UI Components
+
+* **Always use the existing shadcn UI components** in `apps/web/src/components/ui/` instead of building UI from scratch.
+* Available primitives: Button, Input, Label, Card, Tabs, Badge, Table, Select, Textarea, Separator, Skeleton, Form, AlertDialog, Sonner (toast), ThemeToggle.
+* Use these for: buttons, form fields, cards, tabs, badges, tables, dropdowns, modals, toasts, loading states. Do **not** use raw `<button>`, `<input>`, `<table>`, or custom-styled divs when an equivalent UI component exists.
+* Create new components only when no existing primitive fits (e.g. custom chart or diagram). When in doubt, extend or compose from the existing UI set.
+* This keeps the app consistent with the SmartAssist design system and avoids style drift.
+
+---
+
+## 3.4 Logging Standard
 
 * **All code MUST use the global logger utility** (`apps/web/src/lib/logger.ts`) — raw `console.*` calls are forbidden outside the logger itself.
 * Import as: `import * as logger from "@/lib/logger";`
