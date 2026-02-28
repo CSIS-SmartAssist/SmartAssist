@@ -37,7 +37,7 @@ export const LandingHero = () => (
             className="inline-flex items-center gap-2 rounded-lg bg-accent-teal px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:brightness-110 dark:bg-accent-teal"
           >
             <SparkleIcon className="h-4 w-4" />
-            Demo / Try
+            Get started
           </Link>
           <Link
             href="/login"
