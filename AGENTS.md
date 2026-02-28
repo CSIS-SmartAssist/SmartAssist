@@ -73,11 +73,31 @@ Every PR must:
 * Confirm no breaking env variable changes
 * Confirm deployment impact (if any)
 
-## 3.3 Logging Standard
+## 3.3 Use Design System UI Components
 
-* Log errors with context.
-* Never log full document contents.
+* **Always use the existing shadcn UI components** in `apps/web/src/components/ui/` instead of building UI from scratch.
+* Available primitives: Button, Input, Label, Card, Tabs, Badge, Table, Select, Textarea, Separator, Skeleton, Form, AlertDialog, Sonner (toast), ThemeToggle.
+* Use these for: buttons, form fields, cards, tabs, badges, tables, dropdowns, modals, toasts, loading states. Do **not** use raw `<button>`, `<input>`, `<table>`, or custom-styled divs when an equivalent UI component exists.
+* Create new components only when no existing primitive fits (e.g. custom chart or diagram). When in doubt, extend or compose from the existing UI set.
+* This keeps the app consistent with the SmartAssist design system and avoids style drift.
+
+---
+
+## 3.4 Logging Standard
+
+* **All code MUST use the global logger utility** (`apps/web/src/lib/logger.ts`) — raw `console.*` calls are forbidden outside the logger itself.
+* Import as: `import * as logger from "@/lib/logger";`
+* Use the correct contextual logger:
+  * `logger.logApi("error" | "request" | "response", endpoint, details)` — API route handlers
+  * `logger.logAuth("signIn" | "signOut" | "session" | "error", details)` — Auth flows
+  * `logger.logDb(operation, details)` — Database operations (Prisma, raw SQL)
+  * `logger.logEvent(eventName, payload)` — Background jobs, cron, Inngest functions
+  * `logger.error(tag, ...args)` / `logger.warn(tag, ...args)` — General errors/warnings
+  * `logger.info(tag, ...args)` / `logger.debug(tag, ...args)` — Dev-only diagnostics
+* Every `catch` block MUST log the error with context (operation name, entity IDs, error message) before returning or rethrowing.
+* Never log sensitive data: passwords, tokens, secrets, full credentials, or full document contents.
 * Log retrieval scores and ingestion state transitions.
+* **When adding any new feature, API route, component with error handling, or lib module — integrate the logger from the start. This is not optional.**
 
 ---
 

@@ -3,13 +3,18 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { protect } from "@/lib/arcjet";
 import { requireAdmin } from "@/lib/middleware";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
-export async function POST(
-  _request: Request,
+export const POST = async (
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
+  const { deniedResponse } = await protect(request);
+  if (deniedResponse) return deniedResponse;
+
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
@@ -43,8 +48,10 @@ export async function POST(
       });
     });
 
+    logger.logDb("booking.approve", { bookingId: id });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/admin/approve", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to approve booking" }, { status: 500 });
   }
-}
+};

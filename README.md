@@ -52,6 +52,7 @@ INNGEST (external) → 3 AM daily → POST /api/inngest → Next.js calls FastAP
 | LLM                | Groq (Llama 3.3 70B) |
 | Embeddings         | sentence-transformers (in FastAPI) |
 | Cron               | Inngest |
+| API protection     | Arcjet (rate limiting, bot detection) |
 
 ---
 
@@ -132,7 +133,7 @@ For Neon: use the connection string from the dashboard (pooler or direct). Inclu
 - Copy (or symlink) root `.env` to **`apps/web/.env`**, or  
 - Create `apps/web/.env` with the same variables the web app needs (`DATABASE_URL`, `NEXTAUTH_*`, `RAG_SERVICE_URL`, `INTERNAL_SECRET`, etc.).
 
-See `.env.example` for the full list (Auth, RAG, Inngest, Google, SMTP).
+See `.env.example` for the full list (Auth, RAG, Inngest, Google, SMTP, Arcjet).
 
 ### 3. Database (Neon)
 
@@ -165,7 +166,19 @@ See `.env.example` for the full list (Auth, RAG, Inngest, Google, SMTP).
    npm run seed
    ```
 
-### 4. Run the apps
+### 4. Arcjet (optional)
+
+API routes use [Arcjet](https://arcjet.com) for rate limiting (60 req/min per IP) and bot detection. To enable:
+
+1. Sign up at [app.arcjet.com](https://app.arcjet.com), add a site, and copy the key.
+2. Add to `.env` at repo root:
+   ```env
+   ARCJET_KEY=ajkey_...
+   # ARCJET_ENV=development   # optional
+   ```
+Without `ARCJET_KEY`, APIs still work; protection is skipped.
+
+### 5. Run the apps
 
 From the **repo root**:
 
@@ -207,6 +220,7 @@ From the **repo root**:
 - **Browser never calls FastAPI.** All RAG requests go through Next.js API routes; server-side code calls FastAPI with header `x-internal-secret: INTERNAL_SECRET`.
 - **INTERNAL_SECRET** must match in Next.js and FastAPI env.
 - **Admin routes** check user role server-side.
+- **API protection:** With `ARCJET_KEY` set, Arcjet applies rate limiting and bot detection to `/api/chat`, `/api/bookings`, `/api/admin/*`, and `/api/auth/verify-admin-key`. Denied requests get 429 (rate limit) or 403 (bot).
 - **Secrets** stay in `.env`; never commit or log them.
 
 See **AGENTS.md** for full rules.
@@ -223,7 +237,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for full details.
 
 ## Deployment
 
-- **Next.js** → Vercel (root: `apps/web`). Set all env vars from `.env.example`.
+- **Next.js** → Vercel (root: `apps/web`). Set all env vars from `.env.example` (including optional `ARCJET_KEY` for production API protection).
 - **FastAPI** → Render (root: `apps/rag`, runtime: Docker). Set `DATABASE_URL`, `GROQ_API_KEY`, `INTERNAL_SECRET`, Google Drive vars.
 - **Inngest** → Register the production Next.js URL in the Inngest dashboard; cron runs at 3 AM and calls Next.js, which calls FastAPI `/rag/ingest/sync`.
 

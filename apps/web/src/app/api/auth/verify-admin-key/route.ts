@@ -2,10 +2,16 @@
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { protect } from "@/lib/arcjet";
 import { PENDING_ADMIN_COOKIE } from "@/lib/auth-constants";
+import * as logger from "@/lib/logger";
+
 const COOKIE_MAX_AGE = 60 * 5; // 5 minutes
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
+  const { deniedResponse } = await protect(request);
+  if (deniedResponse) return deniedResponse;
+
   try {
     const body = await request.json();
     const key = typeof body?.key === "string" ? body.key.trim() : "";
@@ -35,10 +41,11 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/auth/verify-admin-key", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { ok: false, message: "Invalid request." },
       { status: 400 }
     );
   }
-}
+};
