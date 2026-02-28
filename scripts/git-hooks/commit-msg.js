@@ -7,7 +7,7 @@
  */
 const fs = require("fs");
 
-const VALID_TYPES = ["feat", "fix", "docs", "style", "refactor", "chore", "test"];
+const VALID_TYPES = ["feat", "fix", "docs", "style", "refactor", "chore", "test", "update"];
 const COMMIT_MSG_REGEX = new RegExp(`^(${VALID_TYPES.join("|")})(\\([^)]+\\))?!?: .+`, "i");
 
 // Optional: allow merge commits, revert, etc.

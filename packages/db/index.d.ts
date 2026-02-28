@@ -1,2 +1,2 @@
-export { PrismaClient } from "./generated/client";
+export { PrismaClient, Role } from "./generated/client";
 export type { Prisma } from "./generated/client";
