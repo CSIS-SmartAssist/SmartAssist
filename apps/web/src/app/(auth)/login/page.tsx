@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
+import { Loader2 } from "lucide-react";
 import {
   SmartAssistLogo,
   RoutingIcon,
@@ -15,43 +16,44 @@ import {
 } from "./_components/icons";
 import { FeatureCard } from "./_components/feature-card";
 import { CourseBadge } from "./_components/course-badge";
+import LoginPageFallback from "./_components/LoginPageFallback";
 
 const ALLOWED_DOMAIN = "goa.bits-pilani.ac.in";
 
 type LoginMode = "student" | "admin";
 
-const LoginPage = () => {
+const LoginPageContent = () => {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<LoginMode>("student");
   const [adminKey, setAdminKey] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const err = searchParams.get("error");
-    if (err) setError(decodeURIComponent(err));
-  }, [searchParams]);
+  const urlError = searchParams.get("error")
+    ? decodeURIComponent(searchParams.get("error") ?? "")
+    : null;
+  const error = localError ?? urlError;
 
   const handleStudentSignIn = async () => {
-    setError(null);
+    setLocalError(null);
     setLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/", redirect: true });
+      await signIn("google", { callbackUrl: "/dashboard", redirect: true });
+      // On success we redirect; spinner stays until page unmounts
     } catch (err) {
       logger.logAuth("error", {
         phase: "studentSignIn",
         message: err instanceof Error ? err.message : String(err),
       });
-      setError("Something went wrong. Try again.");
-    } finally {
+      setLocalError("Something went wrong. Try again.");
       setLoading(false);
     }
   };
 
   const handleAdminSignIn = async () => {
-    setError(null);
+    setLocalError(null);
     if (!adminKey.trim()) {
-      setError("Enter the admin key to continue.");
+      setLocalError("Enter the admin key to continue.");
       return;
     }
     setLoading(true);
@@ -63,18 +65,18 @@ const LoginPage = () => {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
-        setError(data.message ?? "Invalid admin key.");
+        setLocalError(data.message ?? "Invalid admin key.");
         setLoading(false);
         return;
       }
       await signIn("google", { callbackUrl: "/admin", redirect: true });
+      // On success we redirect; spinner stays until page unmounts
     } catch (err) {
       logger.logAuth("error", {
         phase: "adminSignIn",
         message: err instanceof Error ? err.message : String(err),
       });
-      setError("Something went wrong. Try again.");
-    } finally {
+      setLocalError("Something went wrong. Try again.");
       setLoading(false);
     }
   };
@@ -165,9 +167,9 @@ const LoginPage = () => {
                   type="button"
                   onClick={() => {
                     setMode("student");
-                    setError(null);
+                    setLocalError(null);
                   }}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                  className={`cursor-pointer rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     mode === "student"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-foreground-muted hover:text-foreground-secondary"
@@ -179,9 +181,9 @@ const LoginPage = () => {
                   type="button"
                   onClick={() => {
                     setMode("admin");
-                    setError(null);
+                    setLocalError(null);
                   }}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                  className={`cursor-pointer rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     mode === "admin"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-foreground-muted hover:text-foreground-secondary"
@@ -245,10 +247,18 @@ const LoginPage = () => {
                   mode === "student" ? handleStudentSignIn : handleAdminSignIn
                 }
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-background-secondary hover:shadow-[0_0_20px_-4px_rgba(124,58,237,0.2)] disabled:opacity-60 dark:border-border-strong dark:hover:border-accent-teal/40 dark:hover:shadow-[0_0_20px_-4px_rgba(45,212,191,0.25)]"
+                className="cursor-pointer flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-background-secondary hover:shadow-[0_0_20px_-4px_rgba(124,58,237,0.2)] disabled:opacity-60 dark:border-border-strong dark:hover:border-accent-teal/40 dark:hover:shadow-[0_0_20px_-4px_rgba(45,212,191,0.25)]"
               >
                 {loading ? (
-                  <span className="text-foreground-secondary">Signing in…</span>
+                  <>
+                    <Loader2
+                      className="h-5 w-5 animate-spin text-foreground-secondary"
+                      aria-hidden
+                    />
+                    <span className="text-foreground-secondary">
+                      Signing in…
+                    </span>
+                  </>
                 ) : (
                   <>
                     <GoogleColorIcon className="h-5 w-5" />
@@ -282,5 +292,11 @@ const LoginPage = () => {
     </div>
   );
 };
+
+const LoginPage = () => (
+  <Suspense fallback={<LoginPageFallback />}>
+    <LoginPageContent />
+  </Suspense>
+);
 
 export default LoginPage;
