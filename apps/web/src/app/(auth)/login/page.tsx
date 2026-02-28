@@ -36,7 +36,7 @@ const LoginPage = () => {
     setError(null);
     setLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/", redirect: true });
+      await signIn("google", { callbackUrl: "/dashboard", redirect: true });
     } catch (err) {
       logger.logAuth("error", {
         phase: "studentSignIn",
