@@ -1,338 +1,102 @@
-"use client";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
+import { Monitor, Calendar, Bell } from "lucide-react";
+import { WelcomeSection } from "./_components/WelcomeSection";
+import { ActionCard } from "./_components/ActionCard";
+import { RecentQA } from "./_components/RecentQA";
+import { UpcomingBookings } from "./_components/UpcomingBookings";
+import { formatTimeRange } from "./_utils";
+import type { RecentQAItem, UpcomingBookingItem } from "./_types";
 
-import { useTheme } from "next-themes";
-import { MainLayout } from "@/components/layouts/MainLayout";
+export default async function DashboardPage() {
+  const session = await getServerSession(authConfig);
+  const userName = session?.user?.name ?? "Student";
 
-interface StatCard {
-  label: string;
-  value: string | number;
-  subtitle?: string;
-  icon?: string;
-  accent?: "blue" | "green" | "orange" | "red";
-}
-
-interface RoomStatus {
-  code: string;
-  name: string;
-  status: "available" | "occupied" | "maintenance";
-  occupancy?: number;
-}
-
-interface Task {
-  id: number;
-  title: string;
-  course: string;
-  dueDate: string;
-  priority: "high" | "medium" | "low";
-}
-
-const DashboardPage = () => {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-
-  const themeClasses = {
-    cardBg: isDark ? "bg-slate-800/40" : "bg-white/60",
-    cardBorder: isDark ? "border-blue-500/20" : "border-blue-500/15",
-    text: isDark ? "text-slate-50" : "text-slate-950",
-    secondaryText: isDark ? "text-slate-400" : "text-slate-600",
-    accentBg: isDark ? "bg-blue-500/15" : "bg-blue-500/10",
-  };
-
-  const stats: StatCard[] = [
+  const recentQA: RecentQAItem[] = [
     {
-      label: "Available Rooms",
-      value: "08",
-      subtitle: "~2 hours from gateway",
-      icon: "📍",
+      question: "How do I request a transcript?",
+      answer:
+        "To request an official transcript, log in to the student portal, navigate to the 'Academics' tab, and select 'Transcript Request'. Processing typically takes 2-3 business days.",
     },
     {
-      label: "Active Courses",
-      value: "02",
-      subtitle: "CS211, CS241",
-      icon: "📚",
-    },
-    {
-      label: "Next Session",
-      value: "CS211 @ DLT1",
-      subtitle: "Starts in 45 mins",
-      icon: "⏰",
+      question: "Library weekend hours?",
+      answer:
+        "The Main Library is open Saturdays from 10:00 AM to 6:00 PM and Sundays from 12:00 PM to 8:00 PM during the regular semester.",
     },
   ];
 
-  const rooms: RoomStatus[] = [
+  const upcomingBookings: UpcomingBookingItem[] = [
     {
-      code: "DLT1",
-      name: "Digital Lecture Theater",
-      status: "occupied",
-      occupancy: 85,
+      id: "1",
+      date: new Date(new Date().getFullYear(), 9, 24),
+      title: "Study Room 304",
+      location: "Library",
+      timeRange: formatTimeRange(
+        new Date(0, 0, 0, 14, 0),
+        new Date(0, 0, 0, 16, 0),
+      ),
+      status: "CONFIRMED",
     },
     {
-      code: "DLT2",
-      name: "Digital Lecture Theater",
-      status: "occupied",
-      occupancy: 62,
+      id: "2",
+      date: new Date(new Date().getFullYear(), 9, 26),
+      title: "Chemistry Lab Station 4",
+      location: "Science Building",
+      timeRange: formatTimeRange(
+        new Date(0, 0, 0, 9, 0),
+        new Date(0, 0, 0, 11, 0),
+      ),
+      status: "PENDING",
     },
     {
-      code: "LT1",
-      name: "Lecture Theater 1",
-      status: "available",
-      occupancy: 0,
-    },
-    {
-      code: "A401",
-      name: "Advanced Systems Lab",
-      status: "available",
-      occupancy: 0,
-    },
-  ];
-
-  const upcomingTasks: Task[] = [
-    {
-      id: 1,
-      title: "DSA Assignment 4",
-      course: "CS211 Data Structures",
-      dueDate: "Today, 11:59 PM",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "MUP Lab Prep",
-      course: "CS241 Microprocessors",
-      dueDate: "Tomorrow",
-      priority: "medium",
+      id: "3",
+      date: new Date(new Date().getFullYear(), 9, 28),
+      title: "Projector Set A",
+      location: "Media Center",
+      timeRange: formatTimeRange(
+        new Date(0, 0, 0, 13, 0),
+        new Date(0, 0, 0, 13, 30),
+      ),
+      status: "CONFIRMED",
     },
   ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "occupied":
-        return "bg-red-500/10 text-red-600 dark:text-red-400";
-      case "available":
-        return "bg-green-500/10 text-green-600 dark:text-green-400";
-      case "maintenance":
-        return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-      default:
-        return "bg-gray-500/10 text-gray-600 dark:text-gray-400";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "border-l-red-500 bg-red-500/5";
-      case "medium":
-        return "border-l-yellow-500 bg-yellow-500/5";
-      case "low":
-        return "border-l-green-500 bg-green-500/5";
-      default:
-        return "border-l-blue-500 bg-blue-500/5";
-    }
-  };
 
   return (
-    <MainLayout>
-      <div
-        className={`min-h-screen overflow-auto ${isDark ? "bg-slate-950" : "bg-slate-50"}`}
-      >
-        <div className="max-w-7xl mx-auto p-8 space-y-8">
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${themeClasses.text}`}>
-              Academic Overview
-            </h1>
-            <p className={themeClasses.secondaryText}>
-              Welcome back, Vedant. Here&apos;s what&apos;s happening today.
-            </p>
-          </div>
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+      <WelcomeSection userName={userName} />
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            {stats.map((stat, idx) => (
-              <div
-                key={idx}
-                className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-4 sm:p-6 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-200`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`${themeClasses.accentBg} p-3 rounded-lg text-blue-500 text-xl`}
-                  >
-                    {stat.icon}
-                  </div>
-                </div>
-                <p
-                  className={`text-sm font-semibold uppercase tracking-wide ${themeClasses.secondaryText} mb-2`}
-                >
-                  {stat.label}
-                </p>
-                <h3 className={`text-2xl sm:text-3xl font-bold ${themeClasses.text} mb-1`}>
-                  {stat.value}
-                </h3>
-                {stat.subtitle && (
-                  <p className={`text-xs sm:text-sm ${themeClasses.secondaryText}`}>
-                    {stat.subtitle}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Live Campus Status */}
-            <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6">
-              <div>
-                <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold ${themeClasses.text} mb-3 sm:mb-4`}>
-                  Live Campus Status
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {rooms.map((room) => (
-                    <div
-                      key={room.code}
-                      className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200`}
-                    >
-                      <div
-                        className={`h-24 ${isDark ? "bg-linear-to-br from-slate-700 to-slate-800" : "bg-linear-to-br from-slate-200 to-slate-300"} flex items-center justify-center relative`}
-                      >
-                        <div
-                          className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}
-                        >
-                          {room.status === "occupied"
-                            ? "In Use"
-                            : room.status === "maintenance"
-                              ? "Maintenance"
-                              : "Available"}
-                        </div>
-                      </div>
-
-                      <div className="p-4">
-                        <h4
-                          className={`text-lg font-bold ${themeClasses.text} mb-1`}
-                        >
-                          {room.code}
-                        </h4>
-                        <p className={`text-xs sm:text-sm ${themeClasses.secondaryText}`}>
-                          {room.name}
-                        </p>
-                        {room.occupancy !== undefined && (
-                          <div className="mt-3">
-                            <div className="flex justify-between items-center mb-2">
-                              <span
-                                className={`text-xs font-semibold ${themeClasses.secondaryText}`}
-                              >
-                                Occupancy
-                              </span>
-                              <span
-                                className={`text-xs font-bold ${themeClasses.text}`}
-                              >
-                                {room.occupancy}%
-                              </span>
-                            </div>
-                            <div
-                              className={`h-1.5 rounded-full ${isDark ? "bg-slate-700" : "bg-slate-200"} overflow-hidden`}
-                            >
-                              <div
-                                className={`h-full ${
-                                  room.occupancy > 75
-                                    ? "bg-red-500"
-                                    : room.occupancy > 40
-                                      ? "bg-yellow-500"
-                                      : "bg-green-500"
-                                }`}
-                                style={{ width: `${room.occupancy}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <div>
-                <h3
-                  className={`text-lg font-bold ${themeClasses.text} mb-4 flex items-center gap-2`}
-                >
-                  <span className="text-blue-500">⏱️</span>
-                  <span className="text-sm sm:text-base">Upcoming Tasks</span>
-                </h3>
-                <div className="space-y-2 sm:space-y-3">
-                  {upcomingTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className={`${themeClasses.cardBg} border-l-4 ${getPriorityColor(task.priority)} rounded-lg p-3 sm:p-4 backdrop-blur-sm`}
-                    >
-                      <h4 className={`text-sm sm:text-base font-semibold ${themeClasses.text} mb-1`}>
-                        {task.title}
-                      </h4>
-                      <p
-                        className={`text-sm ${themeClasses.secondaryText} mb-2`}
-                      >
-                        {task.course}
-                      </p>
-                      <p className={`text-xs ${themeClasses.secondaryText}`}>
-                        Due: {task.dueDate}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 sm:mb-4`}>
-                  Quick Actions
-                </h3>
-                <div className="space-y-2">
-                  <button className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
-                    Book a Room
-                  </button>
-                  <button
-                    className={`w-full px-4 py-3 ${themeClasses.cardBg} border ${themeClasses.cardBorder} ${themeClasses.text} font-semibold rounded-lg transition-all duration-200 hover:shadow-md`}
-                  >
-                    View Schedule
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Campus Locations Guide */}
-          <div
-            className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-6 backdrop-blur-sm`}
-          >
-            <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
-              Campus Locations Guide
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {[
-                { name: "A301 Lab", distance: "~5 mins away" },
-                { name: "G400 Class", distance: "~8 mins away" },
-                { name: "L312 Theater", distance: "~3 mins away" },
-                { name: "R500 Study", distance: "~10 mins away" },
-              ].map((location, idx) => (
-                <div key={idx} className="text-center">
-                  <div
-                    className={`w-12 h-12 rounded-full ${themeClasses.accentBg} mx-auto mb-2 flex items-center justify-center text-blue-500 text-lg`}
-                  >
-                    📍
-                  </div>
-                  <p className={`text-xs sm:text-sm font-semibold ${themeClasses.text}`}>
-                    {location.name}
-                  </p>
-                  <p className={`text-xs ${themeClasses.secondaryText}`}>
-                    {location.distance}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <ActionCard
+          title="Ask AI Assistant"
+          description="Get instant answers about courses & campus policies."
+          href="/chat"
+          buttonLabel="New Chat"
+          icon={<Monitor className="size-6" />}
+          badge="Active"
+          badgeVariant="success"
+        />
+        <ActionCard
+          title="Quick Booking"
+          description="Reserve a study room or lab equipment instantly."
+          href="/bookings"
+          buttonLabel="Book Resource"
+          icon={<Calendar className="size-6" />}
+        />
+        <ActionCard
+          title="Notifications"
+          description="Room 304 booking confirmed for tomorrow."
+          href="/dashboard/notifications"
+          buttonLabel="View All"
+          icon={<Bell className="size-6" />}
+          badge="2 New"
+          badgeVariant="destructive"
+        />
       </div>
-    </MainLayout>
-  );
-};
 
-export default DashboardPage;
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <RecentQA items={recentQA} />
+        <UpcomingBookings bookings={upcomingBookings} />
+      </div>
+    </div>
+  );
+}
