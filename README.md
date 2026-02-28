@@ -213,6 +213,14 @@ See **AGENTS.md** for full rules.
 
 ---
 
+## Contributing
+
+Branch workflow: `feature-branch → development → main`. Use the branch naming pattern `feature/`, `bugfix/`, `update/`, or `release/` and conventional commit messages. **Never open PRs directly to `main`.**
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for full details.
+
+---
+
 ## Deployment
 
 - **Next.js** → Vercel (root: `apps/web`). Set all env vars from `.env.example`.
@@ -223,6 +231,7 @@ See **AGENTS.md** for full rules.
 
 ## References
 
-- **Bible.md** — Full hackathon spec, flows, and task breakdown.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Branch workflow, naming, and commit conventions.
+- **bible.md** — Full hackathon spec, flows, and task breakdown.
 - **AGENTS.md** — Repository operating rules and invariants.
 - **.env.example** — All environment variables.
