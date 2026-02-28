@@ -1,10 +1,17 @@
-// GET /api/bookings — list bookings (Vedant)
+// GET /api/bookings — list bookings (logged-in users only)
 
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as logger from "@/lib/logger";
 
 export const GET = async () => {
+  const session = await getServerSession(authConfig);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const bookings = await prisma.booking.findMany({
       include: {
