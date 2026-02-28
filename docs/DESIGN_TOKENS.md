@@ -3,6 +3,7 @@
 Design tokens derived from [Figma — Final Design](https://www.figma.com/design/aQVPOnniaSWxAIwnNG698p/Final-Design?node-id=0-1).
 
 **Primary:** **Color tokens** (below) are the core of the system — use them for all UI colors in light and dark theme. No hardcoded hex/rgb in components.  
+**Source:** Token values are taken from the **desktop** view in Figma. These same desktop theme colors apply at **all viewports** (desktop, tablet, mobile). Mobile in Figma is used only for **layout and positioning** (e.g. single column, bottom nav), not for different colors.  
 **Rest:** Typography, spacing, radius, shadows, breakpoints can be managed with Tailwind’s utilities as needed; the tables below are optional reference.
 
 ---

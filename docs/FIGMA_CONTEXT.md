@@ -4,6 +4,8 @@
 **fileKey:** `aQVPOnniaSWxAIwnNG698p`  
 **Purpose:** Reference for screens, light/dark inconsistencies, and responsive behavior. No code yet — context only. You will guide what to do where.
 
+**Colors vs layout:** We follow **desktop** colors/themes for both light and dark mode at **all viewports**. Mobile view in Figma is used only for **layout and positioning** (stack, bottom nav, single column, etc.) — not for different colors. Design tokens and CSS use desktop theme colors everywhere.
+
 ---
 
 ## 1. Screens in the file
@@ -44,6 +46,8 @@
 ---
 
 ## 3. Responsiveness — viewports to support
+
+**Colors:** Desktop theme colors (light/dark) apply at every viewport. No mobile-specific color overrides.
 
 - **Desktop**  
   Multi-column, top nav, full layouts (grids, tables, multi-chart dashboards).
