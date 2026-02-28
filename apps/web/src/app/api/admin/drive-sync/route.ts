@@ -7,7 +7,7 @@ import { requireAdmin } from "@/lib/middleware";
 import { triggerRagSync } from "@/lib/rag-client";
 import * as logger from "@/lib/logger";
 
-export async function POST() {
+export const POST = async () => {
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
@@ -21,4 +21,4 @@ export async function POST() {
     logger.logApi("error", "/api/admin/drive-sync", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Sync failed" }, { status: 500 });
   }
-}
+};

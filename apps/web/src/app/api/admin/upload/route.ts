@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
 import * as logger from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
@@ -23,4 +23,4 @@ export async function POST(request: Request) {
 
   // TODO: push to Drive, create Document record, call FastAPI POST /rag/ingest/file
   return NextResponse.json({ ok: true });
-}
+};

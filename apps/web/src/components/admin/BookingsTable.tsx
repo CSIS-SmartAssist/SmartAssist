@@ -10,7 +10,7 @@ type Booking = {
 
 type Props = { bookings: Booking[]; onApprove: (id: string) => void; onReject: (id: string) => void };
 
-export function BookingsTable({ bookings, onApprove, onReject }: Props) {
+export const BookingsTable = ({ bookings, onApprove, onReject }: Props) => {
   if (bookings.length === 0) {
     return <p className="text-muted-foreground text-sm">No pending bookings.</p>;
   }
@@ -43,4 +43,4 @@ export function BookingsTable({ bookings, onApprove, onReject }: Props) {
       </table>
     </div>
   );
-}
+};

@@ -26,7 +26,7 @@ interface Task {
   priority: 'high' | 'medium' | 'low';
 }
 
-export default function DashboardPage() {
+const DashboardPage = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -119,7 +119,7 @@ export default function DashboardPage() {
               Academic Overview
             </h1>
             <p className={themeClasses.secondaryText}>
-              Welcome back, Vedant. Here's what's happening today.
+              Welcome back, Vedant. Here&apos;s what&apos;s happening today.
             </p>
           </div>
 
@@ -164,7 +164,6 @@ export default function DashboardPage() {
                       key={room.code}
                       className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200`}
                     >
-                      {/* Room Image Placeholder */}
                       <div className={`h-24 ${isDark ? 'bg-gradient-to-br from-slate-700 to-slate-800' : 'bg-gradient-to-br from-slate-200 to-slate-300'} flex items-center justify-center relative`}>
                         <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
                           {room.status === 'occupied'
@@ -175,7 +174,6 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Room Info */}
                       <div className="p-4">
                         <h4 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
                           {room.code}
@@ -216,7 +214,6 @@ export default function DashboardPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Upcoming Tasks */}
               <div>
                 <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 flex items-center gap-2`}>
                   <span className="text-blue-500">⏱️</span>
@@ -242,7 +239,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
               <div>
                 <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
                   Quick Actions
@@ -259,7 +255,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Campus Locations Guide */}
           <div className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-6 backdrop-blur-sm`}>
             <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
               Campus Locations Guide
@@ -289,4 +285,6 @@ export default function DashboardPage() {
       </div>
     </MainLayout>
   );
-}
+};
+
+export default DashboardPage;

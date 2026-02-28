@@ -27,11 +27,10 @@ const campusLocations = [
   { code: 'A401', name: 'Advanced Systems Lab' },
 ];
 
-export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShellProps) {
+export const NavigationShell = ({ variant = 'dark', activeRoute }: NavigationShellProps) => {
   const isDark = variant === 'dark';
   const { setTheme } = useTheme();
 
-  // Dark theme colors
   const darkClasses = {
     bg: 'bg-slate-950',
     asideBg: 'bg-slate-900/40 border-blue-500/20',
@@ -41,7 +40,6 @@ export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShe
     accentBorder: 'border-blue-500',
   };
 
-  // Light theme colors
   const lightClasses = {
     bg: 'bg-slate-50',
     asideBg: 'bg-white/60 border-blue-500/15',
@@ -146,9 +144,9 @@ export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShe
             <button className="hover:opacity-80 transition-opacity" aria-label="Settings">
               ⚙️
             </button>
-            <button 
+            <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className="hover:opacity-80 transition-opacity" 
+              className="hover:opacity-80 transition-opacity"
               aria-label="Toggle theme"
             >
               {isDark ? '☀️' : '🌙'}
@@ -160,4 +158,4 @@ export function NavigationShell({ variant = 'dark', activeRoute }: NavigationShe
         </div>
       </aside>
     );
-}
+};

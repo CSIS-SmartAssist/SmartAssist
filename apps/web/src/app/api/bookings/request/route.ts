@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as logger from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const session = await getServerSession(authConfig);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -56,4 +56,4 @@ export async function POST(request: Request) {
     logger.logApi("error", "/api/bookings/request", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
   }
-}
+};

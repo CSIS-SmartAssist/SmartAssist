@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/auth";
 import { queryRag } from "@/lib/rag-client";
 import * as logger from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const session = await getServerSession(authConfig);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,4 +28,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+};

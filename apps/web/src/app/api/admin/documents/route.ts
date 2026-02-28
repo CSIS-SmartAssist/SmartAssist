@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
 import * as logger from "@/lib/logger";
 
-export async function GET() {
+export const GET = async () => {
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
@@ -17,4 +17,4 @@ export async function GET() {
 
   // TODO: Prisma — list Document records
   return NextResponse.json({ documents: [] });
-}
+};
