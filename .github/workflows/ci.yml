@@ -16,6 +16,11 @@ jobs:
   web:
     name: Web (Next.js)
     runs-on: ubuntu-latest
+    env:
+      # Required at build time when Next.js collects page data (no real DB needed)
+      DATABASE_URL: postgresql://localhost:5432/ci_placeholder
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-build-placeholder-secret-min-32-chars
     steps:
       - name: Checkout
         uses: actions/checkout@v4
