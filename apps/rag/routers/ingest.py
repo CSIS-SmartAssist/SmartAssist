@@ -1,7 +1,13 @@
 """POST /rag/ingest/file, POST /rag/ingest/sync, GET /rag/ingest/status, GET /health."""
-from fastapi import APIRouter, Header, HTTPException
+import logging
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Form
 
 from core.config import settings
+from rag.ingest import ingest_file as _ingest_file
+
+logger = logging.getLogger(__name__)
+
+_MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
 
 router = APIRouter()
 
@@ -12,12 +18,28 @@ def _require_internal_secret(x_internal_secret: str | None) -> None:
 
 
 @router.post("/ingest/file")
-def ingest_file(
+async def ingest_file(
+    document_id: str = Form(...),
+    file: UploadFile = File(...),
     x_internal_secret: str | None = Header(None),
 ):
     _require_internal_secret(x_internal_secret)
-    # TODO: receive file bytes or drive_file_id + document_id, call ingest_file()
-    return {"status": "ok", "message": "ingest/file not yet implemented"}
+    mime_type = file.content_type
+    if not mime_type:
+        raise HTTPException(status_code=422, detail="Missing file content type")
+    if file.size is not None and file.size > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File too large (max 50 MB)")
+    file_bytes = await file.read()
+    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File too large (max 50 MB)")
+    try:
+        result = _ingest_file(file_bytes, mime_type, document_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Ingestion failed for document_id=%s", document_id)
+        raise HTTPException(status_code=500, detail="Ingestion failed") from exc
+    return result
 
 
 @router.post("/ingest/sync")
