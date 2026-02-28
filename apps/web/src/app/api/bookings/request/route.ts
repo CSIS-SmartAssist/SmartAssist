@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authConfig);
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
     });
 
     if (conflict) {
+      logger.info("bookings", "Conflict detected", { roomId, start, end, conflictId: conflict.id });
       return NextResponse.json({ error: "Room is already booked for this time slot" }, { status: 409 });
     }
 
@@ -48,8 +50,10 @@ export async function POST(request: Request) {
       },
     });
 
+    logger.logDb("booking.create", { bookingId: booking.id, roomId, userId });
     return NextResponse.json(booking, { status: 201 });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/bookings/request", { message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
   }
 }
