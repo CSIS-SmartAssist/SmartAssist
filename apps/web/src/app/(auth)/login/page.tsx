@@ -14,9 +14,9 @@ type LoginMode = "student" | "admin";
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<LoginMode>("student");
-  const [adminKey, setAdminKey] = useState("");
+  const [adminKey, setAdminKey] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const err = searchParams.get("error");
