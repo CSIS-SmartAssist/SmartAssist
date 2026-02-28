@@ -10,7 +10,7 @@ export const WelcomeSection = ({
   const firstName = userName?.split(" ")[0] ?? "there";
   return (
     <section className="mb-6 md:mb-8">
-      <h2 className="text-2xl font-bold text-foreground md:text-3xl">
+      <h2 className="text-glow text-2xl font-bold text-foreground md:text-3xl">
         Welcome back, {firstName}! 👋
       </h2>
       <p className="mt-1 text-foreground-secondary">{subtitle}</p>

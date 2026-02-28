@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -11,6 +12,7 @@ import {
   HelpCircle,
   Settings,
   LogOut,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardUser } from "@/app/dashboard/_types";
@@ -41,6 +43,16 @@ export const DashboardSidebar = ({
   className,
 }: DashboardSidebarProps) => {
   const pathname = usePathname();
+  const [signingOut, setSigningOut] = useState<boolean>(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut({ callbackUrl: "/", redirect: true });
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   const initials = user?.name
     ? user.name
@@ -49,7 +61,7 @@ export const DashboardSidebar = ({
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "?";
+    : "U";
 
   const content = (
     <>
@@ -126,11 +138,16 @@ export const DashboardSidebar = ({
           </div>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="shrink-0 rounded-lg p-2 text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="cursor-pointer flex shrink-0 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground disabled:opacity-60"
             aria-label="Sign out"
           >
-            <LogOut className="size-5" />
+            {signingOut ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden />
+            ) : (
+              <LogOut className="size-5" aria-hidden />
+            )}
           </button>
         </div>
       </div>

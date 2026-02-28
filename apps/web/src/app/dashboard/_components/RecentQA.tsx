@@ -15,7 +15,7 @@ interface RecentQAProps {
 
 export const RecentQA = ({ items }: RecentQAProps) => {
   return (
-    <Card>
+    <Card className="neon-card">
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <FileText className="size-5 text-foreground-secondary" aria-hidden />

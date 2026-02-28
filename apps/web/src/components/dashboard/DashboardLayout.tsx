@@ -31,12 +31,20 @@ export const DashboardLayout = ({
       )}
     >
       <DashboardSidebar user={user} open={sidebarOpen} onClose={closeSidebar} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div
+          className="glow-orb glow-orb-primary -top-32 right-[-10%] lg:right-[5%]"
+          aria-hidden
+        />
+        <div
+          className="glow-orb glow-orb-secondary -bottom-24 -left-[8%] lg:left-[2%]"
+          aria-hidden
+        />
         <DashboardHeader
           onMenuClick={() => setSidebarOpen((o) => !o)}
           notificationCount={notificationCount}
         />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="relative flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );

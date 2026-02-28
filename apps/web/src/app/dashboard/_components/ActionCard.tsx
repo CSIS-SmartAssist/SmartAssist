@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { ActionCardProps } from "../_types";
-import { cn } from "@/lib/utils";
 
 export const ActionCard = ({
   title,
@@ -25,7 +24,7 @@ export const ActionCard = ({
   badgeVariant = "default",
 }: ActionCardProps) => {
   return (
-    <Card className="flex flex-col transition-shadow hover:shadow-md">
+    <Card className="neon-card flex flex-col transition-shadow hover:shadow-md">
       <CardHeader className="relative pb-2">
         {badge && (
           <CardAction>

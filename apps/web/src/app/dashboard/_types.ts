@@ -27,5 +27,5 @@ export interface ActionCardProps {
   buttonLabel: string;
   icon: ReactNode;
   badge?: string;
-  badgeVariant?: "default" | "secondary" | "destructive" | "outline";
+  badgeVariant?: "default" | "secondary" | "destructive" | "success" | "warning" | "outline";
 }

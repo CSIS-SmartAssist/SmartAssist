@@ -73,7 +73,7 @@ export default async function DashboardPage() {
           buttonLabel="New Chat"
           icon={<Monitor className="size-6" />}
           badge="Active"
-          badgeVariant="default"
+          badgeVariant="success"
         />
         <ActionCard
           title="Quick Booking"

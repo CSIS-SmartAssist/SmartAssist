@@ -4,13 +4,13 @@ export type BookingStatus = "PENDING" | "APPROVED" | "REJECTED" | "CONFIRMED";
 
 export const getBookingStatusVariant = (
   status: string
-): "default" | "secondary" | "destructive" | "outline" => {
+): "default" | "secondary" | "destructive" | "success" | "warning" | "outline" => {
   switch (status.toUpperCase()) {
     case "CONFIRMED":
     case "APPROVED":
-      return "default";
+      return "success";
     case "PENDING":
-      return "secondary";
+      return "warning";
     case "REJECTED":
       return "destructive";
     default:
