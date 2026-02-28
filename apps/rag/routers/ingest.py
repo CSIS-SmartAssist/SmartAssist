@@ -1,7 +1,12 @@
 """POST /rag/ingest/file, POST /rag/ingest/sync, GET /rag/ingest/status, GET /health."""
-from fastapi import APIRouter, Header, HTTPException
+import logging
+
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Form
 
 from core.config import settings
+import rag.ingest as ingest_module
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -12,12 +17,22 @@ def _require_internal_secret(x_internal_secret: str | None) -> None:
 
 
 @router.post("/ingest/file")
-def ingest_file(
+async def ingest_file(
+    document_id: str = Form(...),
+    file: UploadFile = File(...),
     x_internal_secret: str | None = Header(None),
 ):
     _require_internal_secret(x_internal_secret)
-    # TODO: receive file bytes or drive_file_id + document_id, call ingest_file()
-    return {"status": "ok", "message": "ingest/file not yet implemented"}
+    file_bytes = await file.read()
+    mime_type = file.content_type or "application/octet-stream"
+    try:
+        result = ingest_module.ingest_file(file_bytes, mime_type, document_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception as exc:
+        logger.error("Unexpected ingestion error for document_id=%s: %s", document_id, exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Ingestion failed due to an internal error")
+    return result
 
 
 @router.post("/ingest/sync")
