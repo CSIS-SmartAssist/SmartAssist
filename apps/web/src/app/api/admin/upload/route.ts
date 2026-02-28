@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
+import * as logger from "@/lib/logger";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
@@ -18,6 +19,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file" }, { status: 400 });
   }
 
+  logger.logApi("request", "/api/admin/upload", { fileName: file.name, size: file.size });
+
   // TODO: push to Drive, create Document record, call FastAPI POST /rag/ingest/file
   return NextResponse.json({ ok: true });
-}
+};

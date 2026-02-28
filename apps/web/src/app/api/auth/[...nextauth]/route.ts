@@ -1,4 +1,4 @@
-// NextAuth route handler (Mit)
+// NextAuth route handler
 // Google provider, domain restrict to @goa.bits-pilani.ac.in
 
 import NextAuth from "next-auth";

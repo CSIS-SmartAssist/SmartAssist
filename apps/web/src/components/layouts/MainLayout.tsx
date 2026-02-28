@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useTheme } from 'next-themes';
 import { NavigationShell } from '@/components/navigation/NavigationShell';
 import { usePathname } from 'next/navigation';
@@ -9,7 +9,7 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export const MainLayout = ({ children }: MainLayoutProps) => {
   const { theme } = useTheme();
   const pathname = usePathname();
 
@@ -21,4 +21,4 @@ export function MainLayout({ children }: MainLayoutProps) {
       </main>
     </div>
   );
-}
+};

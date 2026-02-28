@@ -19,18 +19,18 @@ export const metadata: Metadata = {
   description: "Smart chatbot + room booking for BITS Goa CS",
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SessionProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </SessionProvider>
-      </body>
-    </html>
-  );
-}
+}>) => (
+  <html lang="en" suppressHydrationWarning>
+    <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <SessionProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </SessionProvider>
+    </body>
+  </html>
+);
+
+export default RootLayout;

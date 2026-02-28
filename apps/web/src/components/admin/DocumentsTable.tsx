@@ -10,7 +10,7 @@ type Doc = {
 
 type Props = { documents: Doc[] };
 
-export function DocumentsTable({ documents }: Props) {
+export const DocumentsTable = ({ documents }: Props) => {
   if (documents.length === 0) {
     return <p className="text-muted-foreground text-sm">No documents.</p>;
   }
@@ -38,4 +38,4 @@ export function DocumentsTable({ documents }: Props) {
       </table>
     </div>
   );
-}
+};
