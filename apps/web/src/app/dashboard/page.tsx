@@ -112,37 +112,37 @@ export default function DashboardPage() {
   return (
     <MainLayout>
       <div className={`min-h-screen overflow-auto ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
-        <div className="max-w-7xl mx-auto p-8 space-y-8">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
           {/* Header */}
           <div className="space-y-2">
-            <h1 className={`text-4xl font-bold ${themeClasses.text}`}>
+            <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${themeClasses.text}`}>
               Academic Overview
             </h1>
-            <p className={themeClasses.secondaryText}>
+            <p className={`text-sm sm:text-base ${themeClasses.secondaryText}`}>
               Welcome back, Vedant. Here's what's happening today.
             </p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {stats.map((stat, idx) => (
               <div
                 key={idx}
-                className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-6 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-4 sm:p-6 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-200`}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`${themeClasses.accentBg} p-3 rounded-lg text-blue-500 text-xl`}>
+                  <div className={`${themeClasses.accentBg} p-2 sm:p-3 rounded-lg text-blue-500 text-lg sm:text-xl`}>
                     {stat.icon}
                   </div>
                 </div>
-                <p className={`text-sm font-semibold uppercase tracking-wide ${themeClasses.secondaryText} mb-2`}>
+                <p className={`text-xs font-semibold uppercase tracking-wide ${themeClasses.secondaryText} mb-2`}>
                   {stat.label}
                 </p>
-                <h3 className={`text-3xl font-bold ${themeClasses.text} mb-1`}>
+                <h3 className={`text-2xl sm:text-3xl font-bold ${themeClasses.text} mb-1`}>
                   {stat.value}
                 </h3>
                 {stat.subtitle && (
-                  <p className={`text-sm ${themeClasses.secondaryText}`}>
+                  <p className={`text-xs sm:text-sm ${themeClasses.secondaryText}`}>
                     {stat.subtitle}
                   </p>
                 )}
@@ -151,22 +151,22 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Live Campus Status */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6">
               <div>
-                <h2 className={`text-2xl font-bold ${themeClasses.text} mb-4`}>
+                <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold ${themeClasses.text} mb-3 sm:mb-4`}>
                   Live Campus Status
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {rooms.map((room) => (
                     <div
                       key={room.code}
                       className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200`}
                     >
                       {/* Room Image Placeholder */}
-                      <div className={`h-24 ${isDark ? 'bg-gradient-to-br from-slate-700 to-slate-800' : 'bg-gradient-to-br from-slate-200 to-slate-300'} flex items-center justify-center relative`}>
-                        <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
+                      <div className={`h-20 sm:h-24 ${isDark ? 'bg-gradient-to-br from-slate-700 to-slate-800' : 'bg-gradient-to-br from-slate-200 to-slate-300'} flex items-center justify-center relative`}>
+                        <div className={`absolute top-2 right-2 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
                           {room.status === 'occupied'
                             ? 'In Use'
                             : room.status === 'maintenance'
@@ -176,11 +176,11 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Room Info */}
-                      <div className="p-4">
-                        <h4 className={`text-lg font-bold ${themeClasses.text} mb-1`}>
+                      <div className="p-3 sm:p-4">
+                        <h4 className={`text-base sm:text-lg font-bold ${themeClasses.text} mb-1`}>
                           {room.code}
                         </h4>
-                        <p className={`text-sm ${themeClasses.secondaryText}`}>
+                        <p className={`text-xs sm:text-sm ${themeClasses.secondaryText}`}>
                           {room.name}
                         </p>
                         {room.occupancy !== undefined && (
@@ -215,43 +215,43 @@ export default function DashboardPage() {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="col-span-1 space-y-4 sm:space-y-6">
               {/* Upcoming Tasks */}
               <div>
-                <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 flex items-center gap-2`}>
+                <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 sm:mb-4 flex items-center gap-2`}>
                   <span className="text-blue-500">⏱️</span>
-                  Upcoming Tasks
+                  <span className="text-sm sm:text-base">Upcoming Tasks</span>
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {upcomingTasks.map((task) => (
                     <div
                       key={task.id}
-                      className={`${themeClasses.cardBg} border-l-4 ${getPriorityColor(task.priority)} rounded-lg p-4 backdrop-blur-sm`}
+                      className={`${themeClasses.cardBg} border-l-4 ${getPriorityColor(task.priority)} rounded-lg p-3 sm:p-4 backdrop-blur-sm`}
                     >
-                      <h4 className={`font-semibold ${themeClasses.text} mb-1`}>
+                      <h4 className={`text-sm sm:text-base font-semibold ${themeClasses.text} mb-1`}>
                         {task.title}
                       </h4>
-                      <p className={`text-sm ${themeClasses.secondaryText} mb-2`}>
+                      <p className={`text-xs sm:text-sm ${themeClasses.secondaryText} mb-2`}>
                         {task.course}
                       </p>
                       <p className={`text-xs ${themeClasses.secondaryText}`}>
                         Due: {task.dueDate}
                       </p>
                     </div>
-                  ))}
+                  ))})
                 </div>
               </div>
 
               {/* Quick Actions */}
               <div>
-                <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
+                <h3 className={`text-lg font-bold ${themeClasses.text} mb-3 sm:mb-4`}>
                   Quick Actions
                 </h3>
                 <div className="space-y-2">
-                  <button className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                  <button className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
                     Book a Room
                   </button>
-                  <button className={`w-full px-4 py-3 ${themeClasses.cardBg} border ${themeClasses.cardBorder} ${themeClasses.text} font-semibold rounded-lg transition-all duration-200 hover:shadow-md`}>
+                  <button className={`w-full px-3 sm:px-4 py-2 sm:py-3 ${themeClasses.cardBg} border ${themeClasses.cardBorder} ${themeClasses.text} text-sm sm:text-base font-semibold rounded-lg transition-all duration-200 hover:shadow-md`}>
                     View Schedule
                   </button>
                 </div>
@@ -260,11 +260,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-6 backdrop-blur-sm`}>
-            <h3 className={`text-lg font-bold ${themeClasses.text} mb-4`}>
+          <div className={`${themeClasses.cardBg} border ${themeClasses.cardBorder} rounded-2xl p-4 sm:p-6 backdrop-blur-sm`}>
+            <h3 className={`text-lg font-bold ${themeClasses.text} mb-4 sm:mb-6`}>
               Campus Locations Guide
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { name: 'A301 Lab', distance: '~5 mins away' },
                 { name: 'G400 Class', distance: '~8 mins away' },
@@ -272,10 +272,10 @@ export default function DashboardPage() {
                 { name: 'R500 Study', distance: '~10 mins away' },
               ].map((location, idx) => (
                 <div key={idx} className="text-center">
-                  <div className={`w-12 h-12 rounded-full ${themeClasses.accentBg} mx-auto mb-2 flex items-center justify-center text-blue-500 text-lg`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${themeClasses.accentBg} mx-auto mb-2 flex items-center justify-center text-blue-500 text-sm sm:text-lg`}>
                     📍
                   </div>
-                  <p className={`text-sm font-semibold ${themeClasses.text}`}>
+                  <p className={`text-xs sm:text-sm font-semibold ${themeClasses.text}`}>
                     {location.name}
                   </p>
                   <p className={`text-xs ${themeClasses.secondaryText}`}>
