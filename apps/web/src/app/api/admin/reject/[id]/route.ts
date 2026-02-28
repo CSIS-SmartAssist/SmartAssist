@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(
   _request: Request,
@@ -15,7 +16,15 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id } = await params;
-  // TODO: set booking status REJECTED
-  return NextResponse.json({ ok: true, bookingId: id });
+  try {
+    const { id } = await params;
+    await prisma.booking.update({
+      where: { id },
+      data: { status: "REJECTED" },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Failed to reject booking" }, { status: 500 });
+  }
 }

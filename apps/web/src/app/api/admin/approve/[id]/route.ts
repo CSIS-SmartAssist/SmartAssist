@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { requireAdmin } from "@/lib/middleware";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(
   _request: Request,
@@ -15,7 +16,35 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id } = await params;
-  // TODO: transaction — set APPROVED, reject conflicts, create calendar event, send email
-  return NextResponse.json({ ok: true, bookingId: id });
+  try {
+    const { id } = await params;
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+    });
+
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id },
+        data: { status: "APPROVED" },
+      });
+
+      await tx.booking.updateMany({
+        where: {
+          id: { not: id },
+          roomId: booking.roomId,
+          status: "PENDING",
+          AND: [{ startTime: { lt: booking.endTime } }, { endTime: { gt: booking.startTime } }],
+        },
+        data: { status: "REJECTED" },
+      });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Failed to approve booking" }, { status: 500 });
+  }
 }
