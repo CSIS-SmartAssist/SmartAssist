@@ -3,14 +3,18 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { protect } from "@/lib/arcjet";
 import { requireAdmin } from "@/lib/middleware";
 import { prisma } from "@/lib/prisma";
 import * as logger from "@/lib/logger";
 
 export const POST = async (
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) => {
+  const { deniedResponse } = await protect(request);
+  if (deniedResponse) return deniedResponse;
+
   const session = await getServerSession(authConfig);
   const allowed = await requireAdmin(session);
   if (!allowed) {
