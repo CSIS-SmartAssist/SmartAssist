@@ -19,7 +19,7 @@ import type { DashboardUser } from "@/app/dashboard/_types";
 
 const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/chat", label: "Chat RAG", icon: MessageSquare },
+  { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/bookings", label: "Bookings", icon: Calendar },
   { href: "/dashboard/history", label: "History", icon: History },
 ];
@@ -44,6 +44,14 @@ export const DashboardSidebar = ({
 }: DashboardSidebarProps) => {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState<boolean>(false);
+  const isChatPage = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  const isItemActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -80,7 +88,7 @@ export const DashboardSidebar = ({
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-4">
         {mainNav.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = isItemActive(item.href);
           const Icon = item.icon;
           return (
             <Link
@@ -94,7 +102,17 @@ export const DashboardSidebar = ({
                   : "text-foreground-secondary hover:bg-background-tertiary hover:text-foreground",
               )}
             >
-              <Icon className="size-5 shrink-0" aria-hidden />
+              <span
+                className={cn(
+                  "flex size-8 shrink-0 items-center justify-center rounded-full transition-colors",
+                  isActive
+                    ? "bg-primary/20 text-primary"
+                    : "text-foreground-secondary",
+                )}
+                aria-hidden
+              >
+                <Icon className="size-5" aria-hidden />
+              </span>
               {item.label}
             </Link>
           );
@@ -119,6 +137,41 @@ export const DashboardSidebar = ({
             );
           })}
         </div>
+
+        {isChatPage && (
+          <>
+            <div className="pt-6">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+                Course Context
+              </p>
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-lg border border-primary px-3 py-2 text-left text-sm font-medium text-primary"
+                >
+                  CS211 DSA
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
+                >
+                  CS241 MUP
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+                Recent Topics
+              </p>
+              <ul className="space-y-2 px-3 text-sm text-foreground-secondary">
+                <li>• AVL Rotations</li>
+                <li>• B-Tree Indexing</li>
+                <li>• Graph Traversals</li>
+              </ul>
+            </div>
+          </>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border p-4">
