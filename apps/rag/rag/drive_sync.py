@@ -1,13 +1,17 @@
 import json
 import io
+import logging
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 from google.oauth2 import service_account
 from core.config import settings
 from rag.ingest import ingest_file
 from db.session import get_connection, release_connection
 
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+log = logging.getLogger(__name__)
+
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 MIME_MAP = {
     "application/pdf": "application/pdf",
@@ -29,6 +33,73 @@ def get_drive_service():
     return build("drive", "v3", credentials=creds)
 
 
+def upload_to_drive(file_bytes: bytes, filename: str, mime_type: str) -> dict:
+    """Upload a file to the configured Google Drive folder and return metadata.
+
+    Uses supportsAllDrives=True so this works for both regular folders and
+    Shared Drives.  Service accounts have no personal storage quota, so the
+    target folder MUST live on a Shared Drive (or the account must use
+    domain-wide delegation).
+    """
+    if not settings.google_service_account_json or not settings.google_drive_folder_id:
+        raise ValueError("Google Drive is not configured (missing service account or folder ID)")
+
+    service = get_drive_service()
+
+    # Parse service account email for error messages
+    try:
+        sa_email = json.loads(settings.google_service_account_json).get("client_email", "unknown")
+    except Exception:
+        sa_email = "unknown"
+
+    file_metadata = {
+        "name": filename,
+        "parents": [settings.google_drive_folder_id],
+    }
+
+    media = MediaIoBaseUpload(
+        io.BytesIO(file_bytes), mimetype=mime_type, resumable=True
+    )
+
+    try:
+        created_file = (
+            service.files()
+            .create(
+                body=file_metadata,
+                media_body=media,
+                fields="id, name, md5Checksum, modifiedTime",
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
+    except HttpError as e:
+        error_detail = str(e)
+        if e.resp.status == 403 and "storageQuotaExceeded" in error_detail:
+            raise PermissionError(
+                f"Service accounts have no personal storage quota. "
+                f"The target folder must be on a Shared Drive (Team Drive). "
+                f"Create a Shared Drive → move the folder into it → "
+                f"add '{sa_email}' as a Contributor. "
+                f"See: https://developers.google.com/drive/api/guides/about-shareddrives"
+            )
+        if e.resp.status == 403:
+            raise PermissionError(
+                f"Google Drive upload forbidden (403). "
+                f"Service account: '{sa_email}'. "
+                f"Google error: {error_detail}"
+            )
+        raise
+
+    log.info("Uploaded %s to Drive as %s", filename, created_file["id"])
+
+    return {
+        "drive_file_id": created_file["id"],
+        "filename": created_file["name"],
+        "checksum": created_file.get("md5Checksum", ""),
+        "modified_time": created_file.get("modifiedTime", ""),
+    }
+
+
 def sync_drive_folder() -> dict:
     if not settings.google_service_account_json or not settings.google_drive_folder_id:
         return {"status": "skipped", "reason": "Drive not configured"}
@@ -39,6 +110,8 @@ def sync_drive_folder() -> dict:
         q=f"'{settings.google_drive_folder_id}' in parents and trashed=false",
         fields="files(id, name, mimeType, md5Checksum, modifiedTime)",
         pageSize=100,
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True,
     ).execute()
 
     files = results.get("files", [])
@@ -98,7 +171,12 @@ def sync_drive_folder() -> dict:
                     (file_id, f["name"], checksum),
                 )
                 conn.commit()
-                ingested.append(f["name"])
+                ingested.append({
+                    "name": f["name"],
+                    "drive_file_id": file_id,
+                    "mime_type": actual_mime,
+                    "checksum": checksum,
+                })
 
             except Exception as e:
                 conn.rollback()
