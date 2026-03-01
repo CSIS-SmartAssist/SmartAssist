@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
@@ -16,13 +16,16 @@ import {
   MoreVertical,
   Search,
   Send,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
+import { cn } from "@/lib/utils";
 import type { ChatMessage } from "./_types";
+import { useSpeechToText } from "./_hooks/useSpeechToText";
 import { exportChatAsPdf } from "./_utils/exportChat";
 import { useChatSidebar } from "./layout";
 import {
@@ -55,6 +58,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState<boolean>(false);
   const [headerMenuOpen, setHeaderMenuOpen] = useState<boolean>(false);
+  const speechFinalRef = useRef<string>("");
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -73,6 +77,34 @@ const ChatPage = () => {
     resolver: zodResolver(chatMessageSchema),
     defaultValues: { message: "" },
   });
+
+  const handleSpeechResult = useCallback(
+    (transcript: string, isFinal: boolean) => {
+      if (isFinal) {
+        speechFinalRef.current = (
+          speechFinalRef.current +
+          " " +
+          transcript
+        ).trim();
+        chatForm.setValue("message", speechFinalRef.current);
+      } else {
+        chatForm.setValue(
+          "message",
+          (speechFinalRef.current + " " + transcript).trim(),
+        );
+      }
+    },
+    [chatForm],
+  );
+
+  const { isListening: isSpeechListening, toggle: toggleSpeech, supported: speechSupported } =
+    useSpeechToText({ onResult: handleSpeechResult });
+
+  const handleMicClick = useCallback(() => {
+    if (!speechSupported) return;
+    if (!isSpeechListening) speechFinalRef.current = chatForm.getValues("message") ?? "";
+    toggleSpeech();
+  }, [speechSupported, isSpeechListening, toggleSpeech, chatForm]);
 
   const userName = session?.user?.name?.trim() || "Student";
   const userEmail = session?.user?.email?.trim() || "student@university.edu";
@@ -380,10 +412,19 @@ const ChatPage = () => {
                         type="button"
                         size="icon"
                         variant="ghost"
-                        className="size-8 shrink-0 cursor-pointer"
-                        aria-label="Voice"
+                        className={cn(
+                          "size-8 shrink-0 cursor-pointer",
+                          isSpeechListening && "bg-destructive/20 text-destructive animate-pulse",
+                        )}
+                        aria-label={isSpeechListening ? "Stop recording" : "Voice input"}
+                        onClick={speechSupported ? handleMicClick : undefined}
+                        title={speechSupported ? (isSpeechListening ? "Stop recording" : "Voice to text") : "Voice input not supported"}
                       >
-                        <Mic className="size-4" />
+                        {isSpeechListening ? (
+                          <Square className="size-4 fill-current" />
+                        ) : (
+                          <Mic className="size-4" />
+                        )}
                       </Button>
                     </Card>
                     <Button
@@ -524,10 +565,19 @@ const ChatPage = () => {
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="size-8 cursor-pointer"
-                  aria-label="Voice"
+                  className={cn(
+                    "size-8 cursor-pointer",
+                    isSpeechListening && "bg-destructive/20 text-destructive animate-pulse",
+                  )}
+                  aria-label={isSpeechListening ? "Stop recording" : "Voice input"}
+                  onClick={speechSupported ? handleMicClick : undefined}
+                  title={speechSupported ? (isSpeechListening ? "Stop recording" : "Voice to text") : "Voice input not supported"}
                 >
-                  <Mic className="size-4" />
+                  {isSpeechListening ? (
+                    <Square className="size-4 fill-current" />
+                  ) : (
+                    <Mic className="size-4" />
+                  )}
                 </Button>
               </Card>
               <Button

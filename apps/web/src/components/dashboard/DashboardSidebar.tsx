@@ -369,7 +369,13 @@ export const DashboardSidebar = ({
                                                 chat.id,
                                                 !chat.pinned,
                                               );
-                                              logger.info("chat", chat.pinned ? "Unpinned" : "Pinned", chat.id);
+                                              logger.info(
+                                                "chat",
+                                                chat.pinned
+                                                  ? "Unpinned"
+                                                  : "Pinned",
+                                                chat.id,
+                                              );
                                               toast.success(
                                                 chat.pinned
                                                   ? "Chat unpinned."
@@ -380,7 +386,9 @@ export const DashboardSidebar = ({
                                                 "chat",
                                                 "Failed to pin",
                                                 chat.id,
-                                                err instanceof Error ? err.message : String(err),
+                                                err instanceof Error
+                                                  ? err.message
+                                                  : String(err),
                                               );
                                               toast.error(
                                                 "Failed to update pin.",
@@ -513,7 +521,8 @@ export const DashboardSidebar = ({
               {deleteDialogChat?.title ? (
                 <>
                   {" "}
-                  &ldquo;{deleteDialogChat.title.length > 40
+                  &ldquo;
+                  {deleteDialogChat.title.length > 40
                     ? `${deleteDialogChat.title.slice(0, 40)}...`
                     : deleteDialogChat.title}
                   &rdquo;
@@ -597,7 +606,12 @@ export const DashboardSidebar = ({
                       chatList
                         .onRenameChat(renameDialogChat.id, trimmed)
                         .then(() => {
-                          logger.info("chat", "Renamed", renameDialogChat.id, trimmed);
+                          logger.info(
+                            "chat",
+                            "Renamed",
+                            renameDialogChat.id,
+                            trimmed,
+                          );
                           toast.success("Chat renamed successfully.");
                           setRenameDialogChat(null);
                         })
