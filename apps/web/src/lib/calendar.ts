@@ -26,12 +26,14 @@ export async function createCalendarEvent({
   startTime,
   endTime,
   location,
+  attendeeEmail,
 }: {
   title: string;
   description: string;
   startTime: Date;
   endTime: Date;
   location: string;
+  attendeeEmail?: string;
 }) {
   const calendarId = process.env.GOOGLE_CALENDAR_ID;
   if (!calendarId) {
@@ -41,12 +43,14 @@ export async function createCalendarEvent({
   const calendar = getCalendarClient();
   const event = await calendar.events.insert({
     calendarId,
+    sendUpdates: "all",
     requestBody: {
       summary: title,
       description,
       location,
       start: { dateTime: startTime.toISOString() },
       end: { dateTime: endTime.toISOString() },
+      attendees: attendeeEmail ? [{ email: attendeeEmail }] : undefined,
     },
   });
 
