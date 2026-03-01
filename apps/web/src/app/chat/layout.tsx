@@ -90,7 +90,7 @@ export default function ChatLayout({
   const removeChat = useCallback((id: string) => {
     setChats((prev) => prev.filter((c) => c.id !== id));
     if (currentChatId === id) router.push("/chat");
-  }, [currentChatId]);
+  }, [currentChatId, router]);
 
   const sortedChats = [...chats].sort((a, b) => {
     const aPinned = a.pinned ? 1 : 0;

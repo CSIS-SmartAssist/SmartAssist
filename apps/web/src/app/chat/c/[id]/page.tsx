@@ -271,29 +271,9 @@ const ConversationChatPage = () => {
                   <Bot className="size-4" />
                 </div>
                 <p className="text-glow text-lg font-semibold">
-                  Smart Assist AI
+                  Smart Assist
                 </p>
               </div>
-              <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
-                <Link
-                  href="/dashboard"
-                  className="text-foreground hover:text-foreground"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
-                  Library
-                </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
-                  Schedule
-                </Link>
-              </nav>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative w-72">
@@ -326,18 +306,10 @@ const ConversationChatPage = () => {
             <section className="min-h-0 flex-1 p-0">
               <Card className="neon-card flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-none border-border/80 bg-card/80 p-0">
                 <div className="flex items-center justify-between border-b border-border px-5 py-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-accent-green" />
-                      <p className="text-glow text-base font-semibold leading-none">
-                        Smart Assist AI
-                      </p>
-                    </div>
-                    <p className="mt-0.5 text-xs text-foreground-secondary">
-                      Subject Context:{" "}
-                      <span className="text-glow font-medium text-primary">
-                        CS211 Data Structures &amp; Algorithms
-                      </span>
+                  <div className="flex items-center gap-2">
+                    <span className="size-2 rounded-full bg-accent-green" />
+                    <p className="text-glow text-base font-semibold leading-none">
+                      Smart Assist
                     </p>
                   </div>
                   <div
@@ -478,7 +450,7 @@ const ConversationChatPage = () => {
                     </Button>
                   </form>
                   <p className="text-glow mt-1 text-center text-[9px] uppercase tracking-widest text-foreground-muted">
-                    Powered by Smart Assist AI Engine • Academic Context Applied
+                    Powered by Smart Assist • Academic Context Applied
                   </p>
                 </div>
               </Card>
@@ -501,7 +473,7 @@ const ConversationChatPage = () => {
               </div>
               <div>
                 <p className="text-glow text-base font-semibold">
-                  Smart Assist AI
+                  Smart Assist
                 </p>
                 <p className="text-xs text-foreground-secondary">
                   Online • {userId}
