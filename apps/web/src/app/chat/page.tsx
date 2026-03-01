@@ -8,13 +8,9 @@ import {
   Bell,
   Bot,
   Calendar,
-  CalendarDays,
-  Folder,
   History,
   ImagePlus,
-  LayoutGrid,
   Menu,
-  MessageSquare,
   Mic,
   MoreVertical,
   Plus,
@@ -371,7 +367,7 @@ const ChatPage = () => {
 
         <div
           ref={mobileScrollRef}
-          className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-28"
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-24"
         >
           <p className="text-center text-xs font-semibold tracking-wide text-foreground-muted">TODAY, 10:23 AM</p>
 
@@ -416,7 +412,7 @@ const ChatPage = () => {
           )}
         </div>
 
-        <div className="fixed inset-x-0 bottom-16 border-t border-border bg-background px-3 pb-2.5 pt-2">
+        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
           <form onSubmit={onMobileSubmit} className="flex items-center gap-2">
             <Button size="icon" variant="ghost" className="size-8 rounded-full" aria-label="Add">
               <Plus className="size-4" />
@@ -437,39 +433,6 @@ const ChatPage = () => {
             </Button>
           </form>
         </div>
-
-        <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-background">
-          <div className="grid h-16 grid-cols-4">
-            <Link
-              href="/dashboard"
-              className={`flex flex-col items-center justify-center text-xs ${pathname === "/dashboard" ? "font-semibold text-primary" : "text-foreground-secondary"}`}
-            >
-              <LayoutGrid className="mb-1 size-4" />
-              Dashboard
-            </Link>
-            <Link
-              href="/chat"
-              className={`flex flex-col items-center justify-center text-xs ${pathname === "/chat" ? "font-semibold text-primary" : "text-foreground-secondary"}`}
-            >
-              <MessageSquare className="mb-1 size-4" />
-              Chat
-            </Link>
-            <Link
-              href="/bookings"
-              className={`flex flex-col items-center justify-center text-xs ${pathname === "/bookings" ? "font-semibold text-primary" : "text-foreground-secondary"}`}
-            >
-              <Folder className="mb-1 size-4" />
-              Bookings
-            </Link>
-            <Link
-              href="/dashboard/history"
-              className={`flex flex-col items-center justify-center text-xs ${pathname === "/dashboard/history" ? "font-semibold text-primary" : "text-foreground-secondary"}`}
-            >
-              <CalendarDays className="mb-1 size-4" />
-              History
-            </Link>
-          </div>
-        </nav>
       </div>
       </div>
       </div>
