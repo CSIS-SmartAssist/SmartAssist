@@ -22,8 +22,6 @@ async def ingest_file_endpoint(
         guessed, _ = mimetypes.guess_type(file.filename or "")
         content_type = guessed or content_type
 
-    print(f"File: {file.filename}, detected type: {content_type}")
-
     if content_type not in SUPPORTED_TYPES:
         raise HTTPException(
             status_code=400,

@@ -1,4 +1,4 @@
-// Internal fetch wrapper to FastAPI — all calls use x-internal-secret 
+// Internal fetch wrapper to FastAPI — all calls use x-internal-secret
 
 import * as logger from "@/lib/logger";
 
@@ -10,7 +10,19 @@ const headers = (): HeadersInit => ({
   "x-internal-secret": SECRET,
 });
 
-export const queryRag = async (message: string): Promise<{ answer: string; citations: unknown[] }> => {
+export type RagBookingParams = {
+  room_name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  reason: string;
+};
+
+export type RagQueryResult =
+  | { answer: string; citations: unknown[] }
+  | { type: "booking_request"; params: RagBookingParams };
+
+export const queryRag = async (message: string): Promise<RagQueryResult> => {
   logger.logApi("request", "RAG /rag/query", { messageLength: message.length });
   const res = await fetch(`${RAG_URL}/rag/query`, {
     method: "POST",
@@ -22,7 +34,7 @@ export const queryRag = async (message: string): Promise<{ answer: string; citat
     throw new Error(`RAG query failed: ${res.status}`);
   }
   logger.logApi("response", "RAG /rag/query", { status: res.status });
-  return res.json();
+  return res.json() as Promise<RagQueryResult>;
 };
 
 export const triggerRagSync = async (): Promise<void> => {
