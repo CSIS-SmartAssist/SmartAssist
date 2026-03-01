@@ -78,6 +78,7 @@ export default function ChatLayout({
         next.unshift({
           id: chat.id,
           title: chat.title,
+          pinned: chat.pinned,
           createdAt: chat.createdAt ?? Date.now(),
           updatedAt: chat.updatedAt ?? Date.now(),
         });
@@ -86,9 +87,44 @@ export default function ChatLayout({
     });
   }, []);
 
-  const sortedChats = [...chats].sort(
-    (a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt),
-  );
+  const removeChat = useCallback((id: string) => {
+    setChats((prev) => prev.filter((c) => c.id !== id));
+    if (currentChatId === id) router.push("/chat");
+  }, [currentChatId, router]);
+
+  const sortedChats = [...chats].sort((a, b) => {
+    const aPinned = a.pinned ? 1 : 0;
+    const bPinned = b.pinned ? 1 : 0;
+    if (bPinned !== aPinned) return bPinned - aPinned;
+    return (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt);
+  });
+
+  const onRenameChat = useCallback(async (id: string, newTitle: string) => {
+    const res = await fetch(`/api/chats/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTitle.trim().slice(0, 200) }),
+    });
+    if (!res.ok) throw new Error("Failed to rename");
+    await loadChats(false);
+  }, []);
+
+  const onDeleteChat = useCallback(async (id: string) => {
+    const res = await fetch(`/api/chats/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Failed to delete");
+    removeChat(id);
+    await loadChats(false);
+  }, [removeChat]);
+
+  const onPinChat = useCallback(async (id: string, pinned: boolean) => {
+    const res = await fetch(`/api/chats/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned }),
+    });
+    if (!res.ok) throw new Error("Failed to pin");
+    await loadChats(false);
+  }, []);
 
   const chatList = isChatRoute
     ? {
@@ -96,6 +132,9 @@ export default function ChatLayout({
         currentChatId,
         onNewChat: () => router.push("/chat"),
         onSelectChat: (id: string) => router.push(`/chat/c/${id}`),
+        onRenameChat,
+        onDeleteChat,
+        onPinChat,
         searchQuery: chatSearchQuery,
         onSearchChange: setChatSearchQuery,
         loading: chatsLoading,
