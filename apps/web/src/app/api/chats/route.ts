@@ -28,10 +28,11 @@ export const GET = async (request: Request) => {
           ? { title: { contains: search, mode: "insensitive" } }
           : {}),
       },
-      orderBy: { updatedAt: "desc" },
+      orderBy: [{ pinned: "desc" }, { updatedAt: "desc" }],
       select: {
         id: true,
         title: true,
+        pinned: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -41,6 +42,7 @@ export const GET = async (request: Request) => {
       chats: conversations.map((c) => ({
         id: c.id,
         title: c.title,
+        pinned: c.pinned,
         createdAt: c.createdAt.getTime(),
         updatedAt: c.updatedAt.getTime(),
       })),

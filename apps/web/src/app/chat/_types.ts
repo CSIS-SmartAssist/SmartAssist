@@ -9,6 +9,7 @@ export type ChatMessage = {
 export type ChatListItem = {
   id: string;
   title: string;
+  pinned?: boolean;
   createdAt: number;
   updatedAt?: number;
 };
