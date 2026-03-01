@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   MessageSquare,
   Calendar,
-  History,
   HelpCircle,
   Settings,
   LogOut,
@@ -25,7 +24,6 @@ const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/bookings", label: "Bookings", icon: Calendar },
-  { href: "/dashboard/history", label: "History", icon: History },
 ];
 
 const supportNav = [
