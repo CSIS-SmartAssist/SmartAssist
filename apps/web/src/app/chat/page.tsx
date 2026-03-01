@@ -10,7 +10,7 @@ import {
   Bell,
   Bot,
   Calendar,
-  History,
+  FileDown,
   Menu,
   Mic,
   MoreVertical,
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
 import type { ChatMessage } from "./_types";
+import { exportChatAsPdf } from "./_utils/exportChat";
 import { useChatSidebar } from "./layout";
 import {
   chatMessageSchema,
@@ -53,8 +54,20 @@ const ChatPage = () => {
   const { setSidebarOpen, addOrUpdateChat } = useChatSidebar();
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState<boolean>(false);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState<boolean>(false);
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!headerMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const el = e.target as Element;
+      if (el.closest?.("[data-chat-header-menu]")) return;
+      setHeaderMenuOpen(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [headerMenuOpen]);
 
   const chatForm = useForm<ChatMessageValues>({
     resolver: zodResolver(chatMessageSchema),
@@ -253,27 +266,43 @@ const ChatPage = () => {
                       </span>
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div
+                    className="relative"
+                    data-chat-header-menu
+                  >
                     <Button
+                      type="button"
                       size="icon"
                       variant="ghost"
-                      asChild
-                      aria-label="History"
-                    >
-                      <Link href={PLACEHOLDER_404_PATH}>
-                        <History className="size-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      asChild
+                      className="cursor-pointer"
                       aria-label="More options"
+                      aria-expanded={headerMenuOpen}
+                      onClick={() => setHeaderMenuOpen((o) => !o)}
                     >
-                      <Link href={PLACEHOLDER_404_PATH}>
-                        <MoreVertical className="size-4" />
-                      </Link>
+                      <MoreVertical className="size-4" />
                     </Button>
+                    {headerMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          aria-hidden
+                          onClick={() => setHeaderMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full z-20 mt-1 min-w-48 rounded-lg border border-border bg-popover py-1 shadow-md">
+                          <button
+                            type="button"
+                            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                            onClick={() => {
+                              exportChatAsPdf(messages, "Smart Assist Chat");
+                              setHeaderMenuOpen(false);
+                            }}
+                          >
+                            <FileDown className="size-4 shrink-0" />
+                            Export chat as PDF
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -400,11 +429,6 @@ const ChatPage = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" asChild aria-label="History">
-                <Link href={PLACEHOLDER_404_PATH}>
-                  <History className="size-4" />
-                </Link>
-              </Button>
               <Button
                 size="icon"
                 variant="ghost"
