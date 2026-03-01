@@ -1,4 +1,3 @@
-# Local testing only
 version: '3.8'
 services:
   rag:
@@ -8,7 +7,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - INTERNAL_SECRET=${INTERNAL_SECRET}
       - GOOGLE_DRIVE_FOLDER_ID=${GOOGLE_DRIVE_FOLDER_ID}
       - GOOGLE_SERVICE_ACCOUNT_JSON=${GOOGLE_SERVICE_ACCOUNT_JSON}
-      - INTERNAL_SECRET=${INTERNAL_SECRET}
     restart: unless-stopped
