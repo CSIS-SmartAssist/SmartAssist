@@ -16,7 +16,6 @@ import {
   Search,
   Send,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,27 +30,19 @@ type ChatMessage = {
   author?: string;
 };
 
-const initialMessages: ChatMessage[] = [
+const getOnboardingMessage = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning! How can I assist you today?";
+  if (hour < 17) return "Good afternoon! How can I assist you today?";
+  return "Good evening! How can I assist you today?";
+};
+
+const getInitialMessages = (): ChatMessage[] => [
   {
-    id: "m1",
+    id: "welcome",
     role: "assistant",
     author: "SMART ASSIST AI",
-    content:
-      "Hello! I’m ready to help with your DSA queries today. We’re currently looking at tree structures. What can I clarify for you?",
-  },
-  {
-    id: "m2",
-    role: "user",
-    author: "VEDANT KAMATH",
-    content:
-      "Can you explain the difference between a Red-Black tree and an AVL tree?",
-  },
-  {
-    id: "m3",
-    role: "assistant",
-    author: "SMART ASSIST AI",
-    content:
-      "Great question! Both Red-Black trees and AVL trees are self-balancing binary search trees, but they handle balancing differently.",
+    content: getOnboardingMessage(),
   },
 ];
 
@@ -61,7 +52,7 @@ const ChatPage = () => {
   const { data: session } = useSession();
   const [desktopInput, setDesktopInput] = useState<string>("");
   const [mobileInput, setMobileInput] = useState<string>("");
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState<boolean>(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
@@ -484,28 +475,14 @@ const ChatPage = () => {
                       <Bot className="size-4" />
                     </div>
                     <div className="flex-1 space-y-2">
-                      <p className="text-glow text-sm font-semibold">Smart Assist</p>
+                      <p className="text-glow text-sm font-semibold">
+                        Smart Assist
+                      </p>
                       <Card className="neon-card rounded-3xl rounded-tl-md p-0">
                         <p className="px-4 py-4 text-base leading-8">
                           {message.content}
                         </p>
                       </Card>
-                      {message.id === "m1" && (
-                        <div className="flex flex-wrap gap-2">
-                          <Badge
-                            variant="secondary"
-                            className="rounded-full px-4 py-1 text-primary"
-                          >
-                            AVL Rotations
-                          </Badge>
-                          <Badge
-                            variant="secondary"
-                            className="rounded-full px-4 py-1 text-primary"
-                          >
-                            Red-Black Properties
-                          </Badge>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ) : (
