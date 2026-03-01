@@ -34,11 +34,19 @@ const LoginPageContent = () => {
     : null;
   const error = localError ?? urlError;
 
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    typeof rawCallbackUrl === "string" &&
+    rawCallbackUrl.startsWith("/") &&
+    !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : "/dashboard";
+
   const handleStudentSignIn = async () => {
     setLocalError(null);
     setLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/dashboard", redirect: true });
+      await signIn("google", { callbackUrl, redirect: true });
       // On success we redirect; spinner stays until page unmounts
     } catch (err) {
       logger.logAuth("error", {
