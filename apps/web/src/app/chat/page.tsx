@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
 import {
   Bell,
   Bot,
@@ -60,14 +59,13 @@ const PLACEHOLDER_404_PATH = "/__coming-soon__";
 
 const ChatPage = () => {
   const { data: session } = useSession();
-  const pathname = usePathname();
-  const [desktopInput, setDesktopInput] = useState("");
-  const [mobileInput, setMobileInput] = useState("");
+  const [desktopInput, setDesktopInput] = useState<string>("");
+  const [mobileInput, setMobileInput] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  const [isSending, setIsSending] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const desktopScrollRef = useRef<HTMLDivElement>(null);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+  const desktopScrollRef = useRef<HTMLDivElement | null>(null);
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
 
   const userName = session?.user?.name?.trim() || "Student";
   const userEmail = session?.user?.email?.trim() || "student@university.edu";
@@ -87,14 +85,18 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (desktopScrollRef.current) {
-      desktopScrollRef.current.scrollTop = desktopScrollRef.current.scrollHeight;
+      desktopScrollRef.current.scrollTop =
+        desktopScrollRef.current.scrollHeight;
     }
     if (mobileScrollRef.current) {
       mobileScrollRef.current.scrollTop = mobileScrollRef.current.scrollHeight;
     }
   }, [messages, isSending]);
 
-  const sendMessage = async (rawValue: string, source: "desktop" | "mobile") => {
+  const sendMessage = async (
+    rawValue: string,
+    source: "desktop" | "mobile",
+  ) => {
     const text = rawValue.trim();
     if (!text || isSending) return;
 
@@ -122,7 +124,10 @@ const ChatPage = () => {
         body: JSON.stringify({ message: text }),
       });
 
-      const payload = (await response.json()) as { answer?: string; error?: string };
+      const payload = (await response.json()) as {
+        answer?: string;
+        error?: string;
+      };
 
       const answer = payload.answer;
       if (!response.ok || typeof answer !== "string") {
@@ -182,259 +187,395 @@ const ChatPage = () => {
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-      <div className="hidden h-full lg:flex lg:flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border/80 bg-background/90 px-8 shadow-[0_1px_0_hsl(var(--primary)/0.22),0_0_22px_hsl(var(--primary)/0.08)] backdrop-blur">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.45)]">
-                <Bot className="size-4" />
-              </div>
-              <p className="text-lg font-semibold">Smart Assist AI</p>
-            </div>
-            <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
-              <Link href="/dashboard" className="text-foreground hover:text-foreground">Dashboard</Link>
-              <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">Library</Link>
-              <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">Schedule</Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground-muted" />
-              <Input
-                placeholder="Search resources..."
-                className="h-10 rounded-xl border-border/80 bg-background-secondary/60 pl-9 shadow-[0_0_16px_hsl(var(--primary)/0.08)]"
-              />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button size="icon" variant="ghost" className="rounded-full" asChild aria-label="Notifications">
-                <Link href={PLACEHOLDER_404_PATH} className="relative">
-                  <Bell className="size-4" />
-                  <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent-red text-[10px] font-bold text-white">
-                    2
-                  </span>
-                </Link>
-              </Button>
-              <ThemeToggle />
-            </div>
-          </div>
-        </header>
-
-        <div className="flex min-h-0 flex-1">
-          <section className="min-h-0 flex-1 p-0">
-            <Card className="flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/80 p-0">
-              <div className="flex items-center justify-between border-b border-border px-5 py-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-accent-green" />
-                    <p className="text-base font-semibold leading-none">Smart Assist AI</p>
+          <div className="hidden h-full lg:flex lg:flex-col">
+            <header className="neon-card flex h-16 items-center justify-between border-b border-border/80 bg-background/90 px-8 backdrop-blur">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.45)]">
+                    <Bot className="size-4" />
                   </div>
-                  <p className="mt-0.5 text-xs text-foreground-secondary">
-                    Subject Context: <span className="font-medium text-primary">CS211 Data Structures &amp; Algorithms</span>
+                  <p className="text-glow text-lg font-semibold">
+                    Smart Assist AI
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" asChild aria-label="History">
-                    <Link href={PLACEHOLDER_404_PATH}>
-                      <History className="size-4" />
+                <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
+                  <Link
+                    href="/dashboard"
+                    className="text-foreground hover:text-foreground"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href={PLACEHOLDER_404_PATH}
+                    className="hover:text-foreground"
+                  >
+                    Library
+                  </Link>
+                  <Link
+                    href={PLACEHOLDER_404_PATH}
+                    className="hover:text-foreground"
+                  >
+                    Schedule
+                  </Link>
+                </nav>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative w-72">
+                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground-muted" />
+                  <Input
+                    placeholder="Search resources..."
+                    className="h-10 rounded-xl border-border/80 bg-background-secondary/60 pl-9 shadow-[0_0_16px_hsl(var(--primary)/0.08)]"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full"
+                    asChild
+                    aria-label="Notifications"
+                  >
+                    <Link href={PLACEHOLDER_404_PATH} className="relative">
+                      <Bell className="size-4" />
+                      <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent-red text-[10px] font-bold text-white">
+                        2
+                      </span>
                     </Link>
                   </Button>
-                  <Button size="icon" variant="ghost" asChild aria-label="More options">
-                    <Link href={PLACEHOLDER_404_PATH}>
-                      <MoreVertical className="size-4" />
-                    </Link>
-                  </Button>
+                  <ThemeToggle />
                 </div>
               </div>
+            </header>
 
-              <div
-                ref={desktopScrollRef}
-                className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-background-secondary/40 px-0 py-0"
-              >
-                <div className="space-y-5 px-6 py-6">
-                  {messages.map((message) =>
-                    message.role === "assistant" ? (
-                      <div key={message.id} className="flex max-w-5xl items-start gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                          <Bot className="size-4" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="pl-1 text-[11px] font-semibold text-foreground-muted">{message.author}</p>
-                          <Card className="rounded-3xl rounded-tl-md border-border/70 p-0">
-                            <p className="px-4 py-[17px] text-base leading-7">{message.content}</p>
+            <div className="flex min-h-0 flex-1">
+              <section className="min-h-0 flex-1 p-0">
+                <Card className="neon-card flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-none border-border/80 bg-card/80 p-0">
+                  <div className="flex items-center justify-between border-b border-border px-5 py-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="size-2 rounded-full bg-accent-green" />
+                        <p className="text-glow text-base font-semibold leading-none">
+                          Smart Assist AI
+                        </p>
+                      </div>
+                      <p className="mt-0.5 text-xs text-foreground-secondary">
+                        Subject Context:{" "}
+                        <span className="text-glow font-medium text-primary">
+                          CS211 Data Structures &amp; Algorithms
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        asChild
+                        aria-label="History"
+                      >
+                        <Link href={PLACEHOLDER_404_PATH}>
+                          <History className="size-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        asChild
+                        aria-label="More options"
+                      >
+                        <Link href={PLACEHOLDER_404_PATH}>
+                          <MoreVertical className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div
+                    ref={desktopScrollRef}
+                    className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-background-secondary/40 px-0 py-0"
+                  >
+                    <div className="space-y-5 px-6 py-6">
+                      {messages.map((message) =>
+                        message.role === "assistant" ? (
+                          <div
+                            key={message.id}
+                            className="flex max-w-5xl items-start gap-3"
+                          >
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              <Bot className="size-4" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className="pl-1 text-[11px] font-semibold text-foreground-muted">
+                                {message.author}
+                              </p>
+                              <Card className="neon-card rounded-3xl rounded-tl-md border-border/70 p-0">
+                                <p className="px-4 py-4.25 text-base leading-7">
+                                  {message.content}
+                                </p>
+                              </Card>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            key={message.id}
+                            className="ml-auto flex max-w-4xl items-start gap-3"
+                          >
+                            <div className="flex-1 space-y-1">
+                              <p className="pr-1 text-right text-[11px] font-semibold text-foreground-muted">
+                                {userAuthor}
+                              </p>
+                              <div className="neon-card rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm text-primary-foreground shadow-md shadow-primary/20">
+                                {message.content}
+                              </div>
+                            </div>
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                              {userInitials}
+                            </div>
+                          </div>
+                        ),
+                      )}
+                      {isSending && (
+                        <div className="flex max-w-5xl items-start gap-3">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Bot className="size-4" />
+                          </div>
+                          <Card className="neon-card rounded-3xl rounded-tl-md border-border/70 p-0">
+                            <p className="px-4 py-4 text-sm text-foreground-secondary">
+                              Thinking...
+                            </p>
                           </Card>
                         </div>
-                      </div>
-                    ) : (
-                      <div key={message.id} className="ml-auto flex max-w-4xl items-start gap-3">
-                        <div className="flex-1 space-y-1">
-                          <p className="pr-1 text-right text-[11px] font-semibold text-foreground-muted">{userAuthor}</p>
-                          <div className="rounded-3xl rounded-tr-md bg-primary px-4 py-3 text-sm text-primary-foreground shadow-md shadow-primary/20">
-                            {message.content}
-                          </div>
-                        </div>
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                          {userInitials}
-                        </div>
-                      </div>
-                    ),
-                  )}
-                  {isSending && (
-                    <div className="flex max-w-5xl items-start gap-3">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Bot className="size-4" />
-                      </div>
-                      <Card className="rounded-3xl rounded-tl-md border-border/70 p-0">
-                        <p className="px-4 py-4 text-sm text-foreground-secondary">Thinking...</p>
-                      </Card>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="border-t border-border bg-background/80 px-6 pb-3 pt-3">
-                <form onSubmit={onDesktopSubmit} className="flex items-center gap-2">
-                  <Card className="flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
-                    <Button size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Attach">
-                      <Plus className="size-4" />
-                    </Button>
-                    <Input
-                      value={desktopInput}
-                      onChange={(event) => setDesktopInput(event.target.value)}
-                      placeholder="Ask about DSA algorithms, complexity, or implementations..."
-                      className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
-                    />
-                    <Button size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Voice">
-                      <Mic className="size-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Image">
-                      <ImagePlus className="size-4" />
-                    </Button>
-                  </Card>
-                  <Button size="icon" type="submit" disabled={isSending} className="size-10 shrink-0 rounded-2xl" aria-label="Send">
-                    <Send className="size-4" />
-                  </Button>
-                </form>
-                <p className="mt-1 text-center text-[9px] uppercase tracking-[0.1em] text-foreground-muted">
-                  Powered by Smart Assist AI Engine • Academic Context Applied
-                </p>
-              </div>
-            </Card>
-          </section>
-        </div>
-      </div>
-
-      <div className="flex h-full flex-col lg:hidden">
-        <header className="flex items-center justify-between border-b border-border bg-background px-4 py-3">
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setMobileSidebarOpen(true)}
-            aria-label="Menu"
-          >
-            <Menu className="size-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Bot className="size-4" />
-            </div>
-            <div>
-              <p className="text-base font-semibold">Smart Assist AI</p>
-              <p className="text-xs text-foreground-secondary">Online • {userId}</p>
+                  <div className="border-t border-border bg-background/80 px-6 pb-3 pt-3">
+                    <form
+                      onSubmit={onDesktopSubmit}
+                      className="flex items-center gap-2"
+                    >
+                      <Card className="neon-card flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 shrink-0"
+                          aria-label="Attach"
+                        >
+                          <Plus className="size-4" />
+                        </Button>
+                        <Input
+                          value={desktopInput}
+                          onChange={(event) =>
+                            setDesktopInput(event.target.value)
+                          }
+                          placeholder="Ask about DSA algorithms, complexity, or implementations..."
+                          className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 shrink-0"
+                          aria-label="Voice"
+                        >
+                          <Mic className="size-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 shrink-0"
+                          aria-label="Image"
+                        >
+                          <ImagePlus className="size-4" />
+                        </Button>
+                      </Card>
+                      <Button
+                        size="icon"
+                        type="submit"
+                        disabled={isSending}
+                        className="size-10 shrink-0 rounded-2xl"
+                        aria-label="Send"
+                      >
+                        <Send className="size-4" />
+                      </Button>
+                    </form>
+                    <p className="text-glow mt-1 text-center text-[9px] uppercase tracking-widest text-foreground-muted">
+                      Powered by Smart Assist AI Engine • Academic Context
+                      Applied
+                    </p>
+                  </div>
+                </Card>
+              </section>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" asChild aria-label="History">
-              <Link href={PLACEHOLDER_404_PATH}>
-                <History className="size-4" />
-              </Link>
-            </Button>
-            <Button size="icon" variant="ghost" asChild aria-label="Notifications">
-              <Link href={PLACEHOLDER_404_PATH}>
-                <Bell className="size-4" />
-              </Link>
-            </Button>
-          </div>
-        </header>
 
-        <div className="border-b border-border px-4 py-3">
-          <Button variant="outline" className="w-full justify-between rounded-full text-left text-sm" asChild>
-            <Link href={PLACEHOLDER_404_PATH}>
-              <span className="truncate">Active: Balanced Binary Search Trees</span>
-              <Calendar className="size-4" />
-            </Link>
-          </Button>
-        </div>
-
-        <div
-          ref={mobileScrollRef}
-          className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-24"
-        >
-          <p className="text-center text-xs font-semibold tracking-wide text-foreground-muted">TODAY, 10:23 AM</p>
-
-          {messages.map((message) =>
-            message.role === "assistant" ? (
-              <div key={message.id} className="flex items-start gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+          <div className="flex h-full flex-col lg:hidden">
+            <header className="neon-card flex items-center justify-between border-b border-border bg-background px-4 py-3">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label="Menu"
+              >
+                <Menu className="size-5" />
+              </Button>
+              <div className="flex items-center gap-2">
+                <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                   <Bot className="size-4" />
                 </div>
-                <div className="flex-1 space-y-2">
-                  <p className="text-sm font-semibold">Smart Assist</p>
-                  <Card className="rounded-3xl rounded-tl-md p-0">
-                    <p className="px-4 py-4 text-base leading-8">{message.content}</p>
-                  </Card>
-                  {message.id === "m1" && (
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="rounded-full px-4 py-1 text-primary">AVL Rotations</Badge>
-                      <Badge variant="secondary" className="rounded-full px-4 py-1 text-primary">Red-Black Properties</Badge>
-                    </div>
-                  )}
+                <div>
+                  <p className="text-glow text-base font-semibold">
+                    Smart Assist AI
+                  </p>
+                  <p className="text-xs text-foreground-secondary">
+                    Online • {userId}
+                  </p>
                 </div>
               </div>
-            ) : (
-              <div key={message.id} className="ml-auto max-w-[85%]">
-                <Card className="rounded-3xl rounded-tr-md bg-primary p-0 text-base leading-8 text-primary-foreground shadow-md shadow-primary/25">
-                  <p className="px-4 py-4">{message.content}</p>
-                </Card>
-                <p className="mt-1 text-right text-xs text-foreground-muted">Read 10:25 AM</p>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  asChild
+                  aria-label="History"
+                >
+                  <Link href={PLACEHOLDER_404_PATH}>
+                    <History className="size-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  asChild
+                  aria-label="Notifications"
+                >
+                  <Link href={PLACEHOLDER_404_PATH}>
+                    <Bell className="size-4" />
+                  </Link>
+                </Button>
               </div>
-            ),
-          )}
+            </header>
 
-          {isSending && (
-            <div className="flex items-start gap-3">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-                <Bot className="size-4" />
-              </div>
-              <Card className="rounded-3xl rounded-tl-md p-0">
-                <p className="px-4 py-3 text-sm text-foreground-secondary">Thinking...</p>
-              </Card>
-            </div>
-          )}
-        </div>
-
-        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
-          <form onSubmit={onMobileSubmit} className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" className="size-8 rounded-full" aria-label="Add">
-              <Plus className="size-4" />
-            </Button>
-            <Card className="flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
-              <Input
-                value={mobileInput}
-                onChange={(event) => setMobileInput(event.target.value)}
-                placeholder="Ask a question about Red-Black Trees..."
-                className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
-              />
-              <Button size="icon" variant="ghost" className="size-8" aria-label="Voice">
-                <Mic className="size-4" />
+            <div className="border-b border-border px-4 py-3">
+              <Button
+                variant="outline"
+                className="neon-card w-full justify-between rounded-full text-left text-sm"
+                asChild
+              >
+                <Link href={PLACEHOLDER_404_PATH}>
+                  <span className="truncate">
+                    Active: Balanced Binary Search Trees
+                  </span>
+                  <Calendar className="size-4" />
+                </Link>
               </Button>
-            </Card>
-            <Button size="icon" type="submit" disabled={isSending} className="size-11 rounded-2xl" aria-label="Send">
-              <Send className="size-4" />
-            </Button>
-          </form>
+            </div>
+
+            <div
+              ref={mobileScrollRef}
+              className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-24"
+            >
+              <p className="text-center text-xs font-semibold tracking-wide text-foreground-muted">
+                TODAY, 10:23 AM
+              </p>
+
+              {messages.map((message) =>
+                message.role === "assistant" ? (
+                  <div key={message.id} className="flex items-start gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                      <Bot className="size-4" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <p className="text-glow text-sm font-semibold">Smart Assist</p>
+                      <Card className="neon-card rounded-3xl rounded-tl-md p-0">
+                        <p className="px-4 py-4 text-base leading-8">
+                          {message.content}
+                        </p>
+                      </Card>
+                      {message.id === "m1" && (
+                        <div className="flex flex-wrap gap-2">
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full px-4 py-1 text-primary"
+                          >
+                            AVL Rotations
+                          </Badge>
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full px-4 py-1 text-primary"
+                          >
+                            Red-Black Properties
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={message.id} className="ml-auto max-w-[85%]">
+                    <Card className="neon-card rounded-3xl rounded-tr-md bg-primary p-0 text-base leading-8 text-primary-foreground shadow-md shadow-primary/25">
+                      <p className="px-4 py-4">{message.content}</p>
+                    </Card>
+                    <p className="mt-1 text-right text-xs text-foreground-muted">
+                      Read 10:25 AM
+                    </p>
+                  </div>
+                ),
+              )}
+
+              {isSending && (
+                <div className="flex items-start gap-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                    <Bot className="size-4" />
+                  </div>
+                  <Card className="neon-card rounded-3xl rounded-tl-md p-0">
+                    <p className="px-4 py-3 text-sm text-foreground-secondary">
+                      Thinking...
+                    </p>
+                  </Card>
+                </div>
+              )}
+            </div>
+
+            <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
+              <form
+                onSubmit={onMobileSubmit}
+                className="flex items-center gap-2"
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 rounded-full"
+                  aria-label="Add"
+                >
+                  <Plus className="size-4" />
+                </Button>
+                <Card className="neon-card flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
+                  <Input
+                    value={mobileInput}
+                    onChange={(event) => setMobileInput(event.target.value)}
+                    placeholder="Ask a question about Red-Black Trees..."
+                    className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8"
+                    aria-label="Voice"
+                  >
+                    <Mic className="size-4" />
+                  </Button>
+                </Card>
+                <Button
+                  size="icon"
+                  type="submit"
+                  disabled={isSending}
+                  className="size-11 rounded-2xl"
+                  aria-label="Send"
+                >
+                  <Send className="size-4" />
+                </Button>
+              </form>
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
       </div>
     </div>
   );
