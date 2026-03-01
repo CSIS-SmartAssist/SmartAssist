@@ -2,8 +2,11 @@
 
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { custom } from "openid-client";
 import { cookies } from "next/headers";
 import { Role } from "@smart-assist/db";
+
+custom.setHttpOptionsDefaults({ timeout: 30000 });
 import {
   getAuthUserByEmail,
   createAuthUser,
@@ -25,6 +28,9 @@ export const authConfig: NextAuthOptions = {
           hd: DOMAIN,
         },
       },
+      httpOptions: {
+        timeout: 30000,
+      },
     }),
   ],
   callbacks: {
@@ -35,10 +41,18 @@ export const authConfig: NextAuthOptions = {
       try {
         const cookieStore = await cookies();
         const pendingAdmin = cookieStore.get(PENDING_ADMIN_COOKIE)?.value === "1";
+        const row = await getAuthUserByEmail(email);
+
+        if (row?.role === Role.ADMIN && !pendingAdmin) {
+          throw new Error("AdminMustUseAdminLogin");
+        }
+        if (row?.role === Role.USER && pendingAdmin) {
+          throw new Error("StudentMustUseStudentLogin");
+        }
+
         const name = user.name ?? email.split("@")[0];
         const role = pendingAdmin ? Role.ADMIN : Role.USER;
 
-        const row = await getAuthUserByEmail(email);
         if (row) {
           if (pendingAdmin) {
             await updateAuthUserRole(email, Role.ADMIN);
