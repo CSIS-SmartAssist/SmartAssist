@@ -8,13 +8,14 @@ import {
   LayoutDashboard,
   MessageSquare,
   Calendar,
-  History,
   HelpCircle,
   Settings,
   LogOut,
   Loader2,
   PenLine,
   Search,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import * as logger from "@/lib/logger";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,6 @@ const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/bookings", label: "Bookings", icon: Calendar },
-  { href: "/dashboard/history", label: "History", icon: History },
 ];
 
 const supportNav = [
@@ -70,8 +70,13 @@ export const DashboardSidebar = ({
 }: DashboardSidebarProps) => {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState<boolean>(false);
+  const [supportExpanded, setSupportExpanded] = useState<boolean>(false);
   const isChatPage = pathname === "/chat" || pathname.startsWith("/chat/");
   const showChatList = isChatPage && chatList;
+  const isSupportActive = supportNav.some(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+  );
+  const supportOpen = supportExpanded || isSupportActive;
 
   const isItemActive = (href: string) => {
     if (href === "/dashboard") {
@@ -172,7 +177,8 @@ export const DashboardSidebar = ({
             <p className="mb-2 mt-3 shrink-0 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               Your chats
             </p>
-            <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+            <div className="min-h-0 flex-1 pr-[-0.75rem]">
+              <ul className="sidebar-chat-list-scroll h-full min-h-0 space-y-0.5 overflow-y-auto px-2 pb-2">
               {chatList.loading ? (
                 <li className="px-2 py-4 text-center text-sm text-foreground-muted">
                   Loading…
@@ -215,30 +221,53 @@ export const DashboardSidebar = ({
                   })
                 );
               })()}
-            </ul>
+              </ul>
+            </div>
           </div>
         )}
       </nav>
 
       <div className="shrink-0 border-t border-sidebar-border">
         <div className="p-4">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+          {/* Desktop: static label */}
+          <p className="mb-2 hidden px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted md:block">
             Support
           </p>
-          {supportNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
-              >
-                <Icon className="size-5 shrink-0" aria-hidden />
-                {item.label}
-              </Link>
-            );
-          })}
+          {/* Mobile: collapsible header — expanded when a support route is active */}
+          <button
+            type="button"
+            onClick={() => setSupportExpanded((e) => !e)}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted transition-colors hover:bg-background-tertiary md:hidden"
+            aria-expanded={supportOpen}
+          >
+            Support
+            {supportOpen ? (
+              <ChevronDown className="size-4 shrink-0" aria-hidden />
+            ) : (
+              <ChevronRight className="size-4 shrink-0" aria-hidden />
+            )}
+          </button>
+          <div
+            className={cn(
+              supportOpen ? "block" : "hidden",
+              "md:block",
+            )}
+          >
+            {supportNav.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
+                >
+                  <Icon className="size-5 shrink-0" aria-hidden />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
         <div className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3">
