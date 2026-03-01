@@ -44,8 +44,12 @@ async def ingest_file_endpoint(
 
 @router.post("/ingest/sync")
 async def sync_endpoint():
-    # Drive sync comes next — placeholder for now
-    return {"status": "sync not yet configured"}
+    try:
+        from rag.drive_sync import sync_drive_folder
+        result = sync_drive_folder()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/ingest/status")
