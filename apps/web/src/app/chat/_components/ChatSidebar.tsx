@@ -69,7 +69,8 @@ export const ChatSidebar = ({
         <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
           Your chats
         </p>
-        <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
+        <div className="min-h-0 flex-1 pr-5">
+          <ul className="sidebar-chat-list-scroll h-full min-h-0 space-y-0.5 overflow-y-auto px-2 pb-3">
           {filteredChats.length === 0 ? (
             <li className="px-2 py-4 text-center text-sm text-foreground-muted">
               {searchQuery.trim()
@@ -97,7 +98,8 @@ export const ChatSidebar = ({
               );
             })
           )}
-        </ul>
+          </ul>
+        </div>
       </div>
     </aside>
   );

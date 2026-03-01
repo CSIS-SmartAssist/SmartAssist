@@ -241,6 +241,34 @@ html.dark .dark-only { display: block; }
   outline-offset: 2px;
 }
 
+/* Sidebar "Your chats" list — themed scrollbar + inset from right edge */
+.sidebar-chat-list-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-primary) var(--sidebar-border);
+}
+/* WebKit (Chrome, Edge, Safari) */
+.sidebar-chat-list-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.sidebar-chat-list-scroll::-webkit-scrollbar-track {
+  background: var(--sidebar-border);
+  border-radius: 9999px;
+  margin: 4px 0 4px 4px;
+}
+.sidebar-chat-list-scroll::-webkit-scrollbar-thumb {
+  background: var(--sidebar-primary);
+  border-radius: 9999px;
+  border: 3px solid var(--sidebar-border);
+}
+.sidebar-chat-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+.sidebar-chat-list-scroll::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
 /* =============================================================================
    Neon glow effects — Login page ambient orbs & card halos
    ============================================================================= */

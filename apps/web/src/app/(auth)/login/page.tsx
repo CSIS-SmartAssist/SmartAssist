@@ -29,7 +29,13 @@ type LoginMode = "student" | "admin";
 
 const LoginPageContent = () => {
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<LoginMode>("student");
+  const rawUrlError = searchParams.get("error") ?? "";
+  const isAdminMustUseAdminLogin = rawUrlError === "AdminMustUseAdminLogin";
+  const isStudentMustUseStudentLogin = rawUrlError === "StudentMustUseStudentLogin";
+  const isOAuthError = rawUrlError === "OAuthSignin" || rawUrlError === "OAuthCallback";
+  const [mode, setMode] = useState<LoginMode>(() =>
+    isAdminMustUseAdminLogin ? "admin" : "student"
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -38,10 +44,16 @@ const LoginPageContent = () => {
     defaultValues: { adminKey: "" },
   });
 
-  const urlError = searchParams.get("error")
-    ? decodeURIComponent(searchParams.get("error") ?? "")
-    : null;
-  const error = localError ?? urlError;
+  const urlError = rawUrlError ? decodeURIComponent(rawUrlError) : null;
+  const errorMessage =
+    isAdminMustUseAdminLogin
+      ? "You are an admin. Please sign in using the Admin option with your admin key."
+      : isStudentMustUseStudentLogin
+        ? "You are registered as a student. Please sign in using the Student option."
+        : isOAuthError
+          ? "Sign-in timed out. Please check your network and try again, or use a different connection (e.g. mobile hotspot)."
+          : urlError;
+  const error = localError ?? errorMessage;
 
   const rawCallbackUrl = searchParams.get("callbackUrl");
   const callbackUrl =
