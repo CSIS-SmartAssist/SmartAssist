@@ -1,56 +1,120 @@
-// Pending bookings + approve/reject buttons (Saksham)
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-type Booking = {
+export type AdminBooking = {
   id: string;
-  requester: string;
-  room: string;
-  time: string;
+  requesterName: string;
+  requesterEmail: string;
+  roomName: string;
+  roomLocation: string;
+  startTime: string;
+  endTime: string;
   reason: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
 };
 
 type Props = {
-  bookings: Booking[];
+  bookings: AdminBooking[];
+  isLoading?: boolean;
+  actionLoadingId?: string | null;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 };
 
-export const BookingsTable = ({ bookings, onApprove, onReject }: Props) => {
-  if (bookings.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">No pending bookings.</p>
-    );
+const formatTimeRange = (startIso: string, endIso: string) => {
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  return `${start.toLocaleString()} - ${end.toLocaleString()}`;
+};
+
+export const BookingsTable = ({
+  bookings,
+  isLoading = false,
+  actionLoadingId = null,
+  onApprove,
+  onReject,
+}: Props) => {
+  if (isLoading) {
+    return <p className="text-sm text-foreground-secondary">Loading bookings...</p>;
   }
+
+  if (bookings.length === 0) {
+    return <p className="text-sm text-foreground-secondary">No pending bookings.</p>;
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr>
-            <th className="text-left">Requester</th>
-            <th className="text-left">Room</th>
-            <th className="text-left">Time</th>
-            <th className="text-left">Reason</th>
-            <th className="text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map((b) => (
-            <tr key={b.id}>
-              <td>{b.requester}</td>
-              <td>{b.room}</td>
-              <td>{b.time}</td>
-              <td>{b.reason}</td>
-              <td>
-                <button type="button" onClick={() => onApprove(b.id)}>
-                  Approve
-                </button>
-                <button type="button" onClick={() => onReject(b.id)}>
-                  Reject
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Requester</TableHead>
+          <TableHead>Room</TableHead>
+          <TableHead>Time</TableHead>
+          <TableHead>Reason</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {bookings.map((booking) => {
+          const isMutating = actionLoadingId === booking.id;
+          return (
+            <TableRow key={booking.id}>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium text-foreground">{booking.requesterName}</span>
+                  <span className="text-xs text-foreground-muted">{booking.requesterEmail}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium text-foreground">{booking.roomName}</span>
+                  <span className="text-xs text-foreground-muted">{booking.roomLocation}</span>
+                </div>
+              </TableCell>
+              <TableCell className="max-w-sm whitespace-normal text-sm text-foreground-secondary">
+                {formatTimeRange(booking.startTime, booking.endTime)}
+              </TableCell>
+              <TableCell className="max-w-sm whitespace-normal text-sm text-foreground-secondary">
+                {booking.reason}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={booking.status === "PENDING" ? "secondary" : booking.status === "APPROVED" ? "default" : "destructive"}
+                >
+                  {booking.status}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => onApprove(booking.id)}
+                    disabled={isMutating || booking.status !== "PENDING"}
+                  >
+                    {isMutating ? "Updating..." : "Approve"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onReject(booking.id)}
+                    disabled={isMutating || booking.status !== "PENDING"}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 };
