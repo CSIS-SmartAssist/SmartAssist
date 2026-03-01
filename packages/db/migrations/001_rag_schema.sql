@@ -16,3 +16,10 @@ CREATE INDEX IF NOT EXISTS idx_rag_embeddings_vector
   ON rag.embeddings
   USING ivfflat (embedding vector_cosine_ops)
   WITH (lists = 100);
+
+CREATE TABLE IF NOT EXISTS rag.drive_sync_log (
+    drive_file_id TEXT PRIMARY KEY,
+    filename      TEXT NOT NULL,
+    checksum      TEXT NOT NULL,
+    synced_at     TIMESTAMPTZ DEFAULT now()
+);
