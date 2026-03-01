@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -29,6 +29,7 @@ export default function ChatLayout({
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [chatSearchQuery, setChatSearchQuery] = useState<string>("");
   const [chatsLoading, setChatsLoading] = useState<boolean>(true);
+  const hasLoadedChatsOnce = useRef(false);
 
   const isChatRoute = pathname === "/chat" || pathname.startsWith("/chat/");
   const currentChatId =
@@ -36,20 +37,23 @@ export default function ChatLayout({
       pathname.replace(/^\/chat\/c\//, "").split("/")[0] ?? null
     : null;
 
-  const loadChats = async () => {
-    setChatsLoading(true);
+  const loadChats = async (showLoading: boolean) => {
+    if (showLoading) setChatsLoading(true);
     try {
       const res = await fetch("/api/chats");
       if (!res.ok) return;
       const data = (await res.json()) as { chats?: ChatListItem[] };
       if (Array.isArray(data.chats)) setChats(data.chats);
     } finally {
-      setChatsLoading(false);
+      if (showLoading) setChatsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isChatRoute) loadChats();
+    if (!isChatRoute) return;
+    const showLoading = !hasLoadedChatsOnce.current;
+    if (showLoading) hasLoadedChatsOnce.current = true;
+    loadChats(showLoading);
   }, [pathname, isChatRoute]);
 
   const dashboardUser: DashboardUser | null = session?.user
