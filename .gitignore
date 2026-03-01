@@ -42,3 +42,10 @@ npm-debug.log*
 
 #Mit PC
 .cursorrules
+
+#extra
+test_*.py
+test*.py
+*.pdf
+*.docx
+*.txt
