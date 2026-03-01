@@ -36,14 +36,8 @@ const LoginPageContent = () => {
   const [mode, setMode] = useState<LoginMode>(() =>
     isAdminMustUseAdminLogin ? "admin" : "student"
   );
-  const [adminKey, setAdminKey] = useState<string>("");
   const [localError, setLocalError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const form = useForm<AdminKeyValues>({
-    resolver: zodResolver(adminKeySchema),
-    defaultValues: { adminKey: "" },
-  });
 
   const form = useForm<AdminKeyValues>({
     resolver: zodResolver(adminKeySchema),
@@ -60,14 +54,6 @@ const LoginPageContent = () => {
           ? "Sign-in timed out. Please check your network and try again, or use a different connection (e.g. mobile hotspot)."
           : urlError;
   const error = localError ?? errorMessage;
-
-  const rawCallbackUrl = searchParams.get("callbackUrl");
-  const callbackUrl =
-    typeof rawCallbackUrl === "string" &&
-    rawCallbackUrl.startsWith("/") &&
-    !rawCallbackUrl.startsWith("//")
-      ? rawCallbackUrl
-      : "/dashboard";
 
   const rawCallbackUrl = searchParams.get("callbackUrl");
   const callbackUrl =
