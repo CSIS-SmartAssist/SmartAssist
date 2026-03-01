@@ -170,7 +170,8 @@ export const DashboardSidebar = ({
             <p className="mb-2 mt-3 shrink-0 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
               Your chats
             </p>
-            <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
+            <div className="min-h-0 flex-1 pr-[-0.75rem]">
+              <ul className="sidebar-chat-list-scroll h-full min-h-0 space-y-0.5 overflow-y-auto px-2 pb-2">
               {chatList.loading ? (
                 <li className="px-2 py-4 text-center text-sm text-foreground-muted">
                   Loading…
@@ -213,7 +214,8 @@ export const DashboardSidebar = ({
                   })
                 );
               })()}
-            </ul>
+              </ul>
+            </div>
           </div>
         )}
       </nav>
