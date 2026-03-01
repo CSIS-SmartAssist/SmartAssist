@@ -115,6 +115,11 @@ export const PATCH = async (
       where: { id },
       data,
     });
+    logger.logApi("response", "/api/chats/[id] PATCH", {
+      id,
+      ...(title !== null && { title: updated.title }),
+      ...(pinned !== null && { pinned: updated.pinned }),
+    });
     return NextResponse.json({
       id: updated.id,
       title: updated.title,
@@ -158,6 +163,7 @@ export const DELETE = async (
     }
 
     await prisma.conversation.delete({ where: { id } });
+    logger.logApi("response", "/api/chats/[id] DELETE", { id });
     return NextResponse.json({ ok: true });
   } catch (err) {
     logger.logApi("error", "/api/chats/[id] DELETE", {

@@ -65,7 +65,6 @@ interface DashboardSidebarProps {
   open?: boolean;
   onClose?: () => void;
   className?: string;
-  /** When on /chat, pass this to show New chat + Your chats in the sidebar */
   chatList?: ChatListSidebarProps | null;
 }
 
@@ -329,14 +328,16 @@ export const DashboardSidebar = ({
                                                 chat.id,
                                                 newTitle.trim(),
                                               );
+                                              logger.info("chat", "Renamed", chat.id, newTitle.trim());
                                               toast.success(
                                                 "Chat renamed successfully.",
                                               );
-                                            } catch {
+                                            } catch (err) {
                                               logger.warn(
                                                 "chat",
                                                 "Failed to rename",
                                                 chat.id,
+                                                err instanceof Error ? err.message : String(err),
                                               );
                                               toast.error(
                                                 "Failed to rename chat.",
@@ -364,16 +365,18 @@ export const DashboardSidebar = ({
                                                 chat.id,
                                                 !chat.pinned,
                                               );
+                                              logger.info("chat", chat.pinned ? "Unpinned" : "Pinned", chat.id);
                                               toast.success(
                                                 chat.pinned
                                                   ? "Chat unpinned."
                                                   : "Chat pinned.",
                                               );
-                                            } catch {
+                                            } catch (err) {
                                               logger.warn(
                                                 "chat",
                                                 "Failed to pin",
                                                 chat.id,
+                                                err instanceof Error ? err.message : String(err),
                                               );
                                               toast.error(
                                                 "Failed to update pin.",
@@ -406,12 +409,14 @@ export const DashboardSidebar = ({
                                               await chatList.onDeleteChat(
                                                 chat.id,
                                               );
+                                              logger.info("chat", "Deleted", chat.id);
                                               toast.error("Chat deleted.");
-                                            } catch {
+                                            } catch (err) {
                                               logger.warn(
                                                 "chat",
                                                 "Failed to delete",
                                                 chat.id,
+                                                err instanceof Error ? err.message : String(err),
                                               );
                                               toast.error(
                                                 "Failed to delete chat.",
