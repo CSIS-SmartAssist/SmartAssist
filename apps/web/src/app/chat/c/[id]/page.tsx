@@ -203,13 +203,22 @@ const ConversationChatPage = () => {
                 </p>
               </div>
               <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
-                <Link href="/dashboard" className="text-foreground hover:text-foreground">
+                <Link
+                  href="/dashboard"
+                  className="text-foreground hover:text-foreground"
+                >
                   Dashboard
                 </Link>
-                <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">
+                <Link
+                  href={PLACEHOLDER_404_PATH}
+                  className="hover:text-foreground"
+                >
                   Library
                 </Link>
-                <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">
+                <Link
+                  href={PLACEHOLDER_404_PATH}
+                  className="hover:text-foreground"
+                >
                   Schedule
                 </Link>
               </nav>
@@ -223,7 +232,13 @@ const ConversationChatPage = () => {
                 />
               </div>
               <div className="flex items-center gap-1.5">
-                <Button size="icon" variant="ghost" className="rounded-full" asChild aria-label="Notifications">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full"
+                  asChild
+                  aria-label="Notifications"
+                >
                   <Link href={PLACEHOLDER_404_PATH} className="relative">
                     <Bell className="size-4" />
                     <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent-red text-[10px] font-bold text-white">
@@ -254,12 +269,22 @@ const ConversationChatPage = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button size="icon" variant="ghost" asChild aria-label="History">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      asChild
+                      aria-label="History"
+                    >
                       <Link href={PLACEHOLDER_404_PATH}>
                         <History className="size-4" />
                       </Link>
                     </Button>
-                    <Button size="icon" variant="ghost" asChild aria-label="More options">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      asChild
+                      aria-label="More options"
+                    >
                       <Link href={PLACEHOLDER_404_PATH}>
                         <MoreVertical className="size-4" />
                       </Link>
@@ -273,7 +298,10 @@ const ConversationChatPage = () => {
                   <div className="space-y-5 px-6 py-6">
                     {messages.map((message) =>
                       message.role === "assistant" ? (
-                        <div key={message.id} className="flex max-w-5xl items-start gap-3">
+                        <div
+                          key={message.id}
+                          className="flex max-w-5xl items-start gap-3"
+                        >
                           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                             <Bot className="size-4" />
                           </div>
@@ -289,7 +317,10 @@ const ConversationChatPage = () => {
                           </div>
                         </div>
                       ) : (
-                        <div key={message.id} className="ml-auto flex max-w-4xl items-start gap-3">
+                        <div
+                          key={message.id}
+                          className="ml-auto flex max-w-4xl items-start gap-3"
+                        >
                           <div className="flex-1 space-y-1">
                             <p className="pr-1 text-right text-[11px] font-semibold text-foreground-muted">
                               {userAuthor}
@@ -319,9 +350,18 @@ const ConversationChatPage = () => {
                   </div>
                 </div>
                 <div className="border-t border-border bg-background/80 px-6 pb-3 pt-3">
-                  <form onSubmit={(e) => onChatSubmit()(e)} className="flex items-center gap-2">
+                  <form
+                    onSubmit={(e) => onChatSubmit()(e)}
+                    className="flex items-center gap-2"
+                  >
                     <Card className="neon-card flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
-                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Attach">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="size-8 shrink-0"
+                        aria-label="Attach"
+                      >
                         <Plus className="size-4" />
                       </Button>
                       <Input
@@ -329,10 +369,22 @@ const ConversationChatPage = () => {
                         placeholder="Ask about DSA algorithms, complexity, or implementations..."
                         className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
                       />
-                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Voice">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="size-8 shrink-0"
+                        aria-label="Voice"
+                      >
                         <Mic className="size-4" />
                       </Button>
-                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Image">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="size-8 shrink-0"
+                        aria-label="Image"
+                      >
                         <ImagePlus className="size-4" />
                       </Button>
                     </Card>
@@ -356,7 +408,12 @@ const ConversationChatPage = () => {
         </div>
         <div className="flex h-full flex-col lg:hidden">
           <header className="neon-card flex items-center justify-between border-b border-border bg-background px-4 py-3">
-            <Button size="icon" variant="ghost" onClick={() => setSidebarOpen(true)} aria-label="Menu">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Menu"
+            >
               <Menu className="size-5" />
             </Button>
             <div className="flex items-center gap-2">
@@ -364,8 +421,12 @@ const ConversationChatPage = () => {
                 <Bot className="size-4" />
               </div>
               <div>
-                <p className="text-glow text-base font-semibold">Smart Assist AI</p>
-                <p className="text-xs text-foreground-secondary">Online • {userId}</p>
+                <p className="text-glow text-base font-semibold">
+                  Smart Assist AI
+                </p>
+                <p className="text-xs text-foreground-secondary">
+                  Online • {userId}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -374,7 +435,12 @@ const ConversationChatPage = () => {
                   <History className="size-4" />
                 </Link>
               </Button>
-              <Button size="icon" variant="ghost" asChild aria-label="Notifications">
+              <Button
+                size="icon"
+                variant="ghost"
+                asChild
+                aria-label="Notifications"
+              >
                 <Link href={PLACEHOLDER_404_PATH}>
                   <Bell className="size-4" />
                 </Link>
@@ -392,9 +458,13 @@ const ConversationChatPage = () => {
                     <Bot className="size-4" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <p className="text-glow text-sm font-semibold">Smart Assist</p>
+                    <p className="text-glow text-sm font-semibold">
+                      Smart Assist
+                    </p>
                     <Card className="neon-card rounded-3xl rounded-tl-md p-0">
-                      <p className="px-4 py-4 text-base leading-8">{message.content}</p>
+                      <p className="px-4 py-4 text-base leading-8">
+                        {message.content}
+                      </p>
                     </Card>
                   </div>
                 </div>
@@ -412,14 +482,25 @@ const ConversationChatPage = () => {
                   <Bot className="size-4" />
                 </div>
                 <Card className="neon-card rounded-3xl rounded-tl-md p-0">
-                  <p className="px-4 py-3 text-sm text-foreground-secondary">Thinking...</p>
+                  <p className="px-4 py-3 text-sm text-foreground-secondary">
+                    Thinking...
+                  </p>
                 </Card>
               </div>
             )}
           </div>
           <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
-            <form onSubmit={(e) => onChatSubmit()(e)} className="flex items-center gap-2">
-              <Button type="button" size="icon" variant="ghost" className="size-8 rounded-full" aria-label="Add">
+            <form
+              onSubmit={(e) => onChatSubmit()(e)}
+              className="flex items-center gap-2"
+            >
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 rounded-full"
+                aria-label="Add"
+              >
                 <Plus className="size-4" />
               </Button>
               <Card className="neon-card flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
@@ -429,7 +510,13 @@ const ConversationChatPage = () => {
                   placeholder="Ask a question..."
                   className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
                 />
-                <Button type="button" size="icon" variant="ghost" className="size-8" aria-label="Voice">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  aria-label="Voice"
+                >
                   <Mic className="size-4" />
                 </Button>
               </Card>
