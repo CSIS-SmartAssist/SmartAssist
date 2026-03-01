@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { withRouteAuth } from "@/lib/route-auth";
 import { prisma } from "@/lib/prisma";
+import { sendBookingRequestReceived } from "@/lib/email";
 import * as logger from "@/lib/logger";
 
 export const POST = async (request: Request) => {
@@ -47,6 +48,35 @@ export const POST = async (request: Request) => {
         status: "PENDING",
       },
     });
+
+    const [user, room] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true },
+      }),
+      prisma.room.findUnique({
+        where: { id: roomId },
+        select: { name: true },
+      }),
+    ]);
+
+    if (user?.email && user?.name && room?.name) {
+      try {
+        await sendBookingRequestReceived({
+          toEmail: user.email,
+          toName: user.name,
+          roomName: room.name,
+          startTime: start,
+          endTime: end,
+        });
+      } catch (emailErr) {
+        logger.logApi("error", "/api/bookings/request", {
+          message: "Booking request email failed",
+          detail: emailErr instanceof Error ? emailErr.message : String(emailErr),
+          bookingId: booking.id,
+        });
+      }
+    }
 
     logger.logDb("booking.create", { bookingId: booking.id, roomId, userId });
     return NextResponse.json(booking, { status: 201 });
