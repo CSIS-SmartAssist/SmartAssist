@@ -12,6 +12,7 @@ interface DashboardLayoutProps {
   user: DashboardUser | null;
   notificationCount?: number;
   className?: string;
+  enableVisualEffects?: boolean;
 }
 
 export const DashboardLayout = ({
@@ -19,6 +20,7 @@ export const DashboardLayout = ({
   user,
   notificationCount = 0,
   className,
+  enableVisualEffects = true,
 }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -32,14 +34,18 @@ export const DashboardLayout = ({
     >
       <DashboardSidebar user={user} open={sidebarOpen} onClose={closeSidebar} />
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div
-          className="glow-orb glow-orb-primary -top-32 right-[-10%] lg:right-[5%]"
-          aria-hidden
-        />
-        <div
-          className="glow-orb glow-orb-secondary -bottom-24 -left-[8%] lg:left-[2%]"
-          aria-hidden
-        />
+        {enableVisualEffects && (
+          <>
+            <div
+              className="glow-orb glow-orb-primary -top-32 right-[-10%] lg:right-[5%]"
+              aria-hidden
+            />
+            <div
+              className="glow-orb glow-orb-secondary -bottom-24 -left-[8%] lg:left-[2%]"
+              aria-hidden
+            />
+          </>
+        )}
         <DashboardHeader
           onMenuClick={() => setSidebarOpen((o) => !o)}
           notificationCount={notificationCount}
