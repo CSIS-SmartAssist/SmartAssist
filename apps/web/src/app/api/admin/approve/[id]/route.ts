@@ -1,12 +1,11 @@
-// POST /api/admin/approve/[id] — approve booking, auto-reject conflicts, calendar + email (Vedant)
-
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { protect } from "@/lib/arcjet";
 import { requireAdmin } from "@/lib/middleware";
 import { prisma } from "@/lib/prisma";
-import * as logger from "@/lib/logger";
+import { createCalendarEvent } from "@/lib/calendar";
+import { sendBookingConfirmation } from "@/lib/email";
 
 export const POST = async (
   request: Request,
@@ -25,6 +24,7 @@ export const POST = async (
     const { id } = await params;
     const booking = await prisma.booking.findUnique({
       where: { id },
+      include: { user: true, room: true },
     });
 
     if (!booking) {
@@ -42,16 +42,42 @@ export const POST = async (
           id: { not: id },
           roomId: booking.roomId,
           status: "PENDING",
-          AND: [{ startTime: { lt: booking.endTime } }, { endTime: { gt: booking.startTime } }],
+          AND: [
+            { startTime: { lt: booking.endTime } },
+            { endTime: { gt: booking.startTime } },
+          ],
         },
         data: { status: "REJECTED" },
       });
     });
 
-    logger.logDb("booking.approve", { bookingId: id });
+    try {
+      await createCalendarEvent({
+        title: `${booking.room.name} - ${booking.user.name}`,
+        description: booking.reason,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        location: booking.room.location,
+      });
+    } catch (calErr) {
+      console.error("Calendar event failed:", calErr);
+    }
+
+    try {
+      await sendBookingConfirmation({
+        toEmail: booking.user.email,
+        toName: booking.user.name,
+        roomName: booking.room.name,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: "APPROVED",
+      });
+    } catch (emailErr) {
+      console.error("Email failed:", emailErr);
+    }
+
     return NextResponse.json({ success: true });
-  } catch (err) {
-    logger.logApi("error", "/api/admin/approve", { message: err instanceof Error ? err.message : String(err) });
+  } catch {
     return NextResponse.json({ error: "Failed to approve booking" }, { status: 500 });
   }
 };
