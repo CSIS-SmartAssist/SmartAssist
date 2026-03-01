@@ -114,10 +114,10 @@ export const POST = async (request: Request) => {
       try {
         const result = await queryRag(message);
         // ── booking intercept ──────────────────────────────────────────────
-        if (result.type === "booking_request" && result.params) {
+        if ("type" in result && result.type === "booking_request" && result.params) {
           answer = await handleBookingRequest(result.params, userId);
         } else {
-          answer = result.answer;
+          answer = "answer" in result ? result.answer : "";
         }
         // ──────────────────────────────────────────────────────────────────
       } catch (ragErr) {
@@ -157,10 +157,10 @@ export const POST = async (request: Request) => {
     try {
       const result = await queryRag(message);
       // ── booking intercept ────────────────────────────────────────────────
-      if (result.type === "booking_request" && result.params) {
+      if ("type" in result && result.type === "booking_request" && result.params) {
         answer = await handleBookingRequest(result.params, userId);
       } else {
-        answer = result.answer;
+        answer = "answer" in result ? result.answer : "";
       }
       // ────────────────────────────────────────────────────────────────────
     } catch (ragErr) {
