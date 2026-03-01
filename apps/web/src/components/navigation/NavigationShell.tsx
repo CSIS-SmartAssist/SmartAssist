@@ -36,7 +36,7 @@ export const NavigationShell = ({
 
   const darkClasses = {
     bg: "bg-slate-950",
-    asideBg: "bg-slate-900/40 border-blue-500/20",
+    asideBg: "bg-slate-950/40 border-blue-500/20",
     text: "text-slate-50",
     secondaryText: "text-slate-400",
     accentBg: "bg-blue-500/15",
@@ -45,7 +45,7 @@ export const NavigationShell = ({
 
   const lightClasses = {
     bg: "bg-slate-50",
-    asideBg: "bg-white/60 border-blue-500/15",
+    asideBg: "bg-white border-blue-500/15",
     text: "text-slate-950",
     secondaryText: "text-slate-600",
     accentBg: "bg-blue-500/10",

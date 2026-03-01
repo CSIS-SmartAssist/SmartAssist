@@ -1,6 +1,7 @@
 // Arcjet — rate limiting and bot detection for API routes
 
 import arcjet, { detectBot, fixedWindow } from "@arcjet/next";
+import * as logger from "@/lib/logger";
 
 const key = process.env.ARCJET_KEY;
 const isConfigured = Boolean(key?.trim());
@@ -34,10 +35,12 @@ export async function protect(
   }
   const decision = await aj.protect(request);
   if (decision.isDenied()) {
-    const status = decision.reason.isRateLimit() ? 429 : 403;
-    const body = decision.reason.isRateLimit()
+    const isRateLimit = decision.reason.isRateLimit();
+    const status = isRateLimit ? 429 : 403;
+    const body = isRateLimit
       ? { error: "Too many requests. Please try again later." }
       : { error: "Forbidden" };
+    logger.logApi("error", "arcjet", { denied: true, status, isRateLimit });
     return {
       deniedResponse: new Response(JSON.stringify(body), {
         status,

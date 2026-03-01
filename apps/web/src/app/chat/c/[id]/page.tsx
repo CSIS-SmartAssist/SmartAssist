@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +9,6 @@ import { useSession } from "next-auth/react";
 import {
   Bell,
   Bot,
-  Calendar,
   History,
   ImagePlus,
   Menu,
@@ -24,8 +23,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
-import type { ChatMessage } from "./_types";
-import { useChatSidebar } from "./layout";
+import type { ChatMessage } from "../../_types";
+import { useChatSidebar } from "../../layout";
 import {
   chatMessageSchema,
   type ChatMessageValues,
@@ -49,12 +48,14 @@ const getInitialMessages = (): ChatMessage[] => [
 
 const PLACEHOLDER_404_PATH = "/__coming-soon__";
 
-const ChatPage = () => {
-  const router = useRouter();
+const ConversationChatPage = () => {
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : null;
   const { data: session } = useSession();
   const { setSidebarOpen, addOrUpdateChat } = useChatSidebar();
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
-  const [isSending, setIsSending] = useState<boolean>(false);
+  const [isSending, setIsSending] = useState(false);
+  const [loading, setLoading] = useState(Boolean(id));
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,6 +76,57 @@ const ChatPage = () => {
   const userAuthor = userName.toUpperCase();
 
   useEffect(() => {
+    if (!id) return;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/chats/${id}`);
+        if (!res.ok) {
+          setMessages(getInitialMessages());
+          return;
+        }
+        const data = (await res.json()) as {
+          id: string;
+          title: string;
+          createdAt: number;
+          updatedAt: number;
+          messages: ChatMessage[];
+        };
+        setMessages(
+          data.messages?.length ? data.messages : getInitialMessages(),
+        );
+        if (data.title === "New Chat" && data.messages?.length) {
+          const firstUser = data.messages.find((m) => m.role === "user");
+          const newTitle = firstUser
+            ? firstUser.content.trim().slice(0, 40) || "New chat"
+            : "New chat";
+          fetch(`/api/chats/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: newTitle }),
+          })
+            .then((r) => r.json())
+            .then((patched: { title?: string; updatedAt?: number }) => {
+              if (patched.title)
+                addOrUpdateChat({
+                  id,
+                  title: patched.title,
+                  createdAt: data.createdAt,
+                  updatedAt: patched.updatedAt ?? data.updatedAt,
+                });
+            })
+            .catch((err) => {
+              logger.warn("chat", "Failed to update conversation title", id, err instanceof Error ? err.message : String(err));
+            });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id, addOrUpdateChat]);
+
+  useEffect(() => {
     if (desktopScrollRef.current) {
       desktopScrollRef.current.scrollTop =
         desktopScrollRef.current.scrollHeight;
@@ -86,7 +138,7 @@ const ChatPage = () => {
 
   const sendMessage = async (rawValue: string) => {
     const text = rawValue.trim();
-    if (!text || isSending) return;
+    if (!text || isSending || !id) return;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -95,45 +147,21 @@ const ChatPage = () => {
       content: text,
     };
     setMessages((prev) => [...prev, userMsg]);
-
     setIsSending(true);
     try {
-      const body: { message: string; conversationId?: string; title?: string } =
-        {
-          message: text,
-          title: "New Chat",
-        };
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ message: text, conversationId: id }),
       });
-
       const payload = (await response.json()) as {
         answer?: string;
         error?: string;
-        conversationId?: string;
-        title?: string;
       };
-
       const answer = payload.answer;
       if (!response.ok || typeof answer !== "string") {
         throw new Error(payload.error ?? "Failed to get response");
       }
-
-      if (payload.conversationId) {
-        const now = Date.now();
-        addOrUpdateChat({
-          id: payload.conversationId,
-          title: (payload.title ?? text.slice(0, 40)) || "New chat",
-          createdAt: now,
-          updatedAt: now,
-        });
-        router.push(`/chat/c/${payload.conversationId}`);
-        return;
-      }
-
       const assistantMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         role: "assistant",
@@ -142,14 +170,14 @@ const ChatPage = () => {
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
-      logger.logApi("error", "/api/chat (client)", { message: err instanceof Error ? err.message : String(err) });
+      logger.logApi("error", "/api/chat (client)", { conversationId: id, message: err instanceof Error ? err.message : String(err) });
       setMessages((prev) => [
         ...prev,
         {
           id: `e-${Date.now()}`,
           role: "assistant",
           author: "SMART ASSIST AI",
-          content: "I couldn’t fetch a response right now. Please try again.",
+          content: "I couldn't fetch a response right now. Please try again.",
         },
       ]);
     } finally {
@@ -165,8 +193,24 @@ const ChatPage = () => {
       sendMessage(message);
     });
 
+  if (!id) {
+    return (
+      <div className="flex h-full items-center justify-center text-foreground-muted">
+        Invalid conversation
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-foreground-muted">
+        Loading…
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-screen overflow-hidden bg-background text-foreground">
+    <div className="relative h-full overflow-hidden bg-background text-foreground">
       <div
         className="glow-orb glow-orb-primary -top-32 right-[-10%] lg:right-[5%]"
         aria-hidden
@@ -175,7 +219,6 @@ const ChatPage = () => {
         className="glow-orb glow-orb-secondary -bottom-24 -left-[8%] lg:left-[2%]"
         aria-hidden
       />
-
       <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col">
         <div className="hidden h-full lg:flex lg:flex-col">
           <header className="neon-card flex h-16 items-center justify-between border-b border-border/80 bg-background/90 px-8 backdrop-blur">
@@ -236,7 +279,6 @@ const ChatPage = () => {
               </div>
             </div>
           </header>
-
           <div className="flex min-h-0 flex-1">
             <section className="min-h-0 flex-1 p-0">
               <Card className="neon-card flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-none border-border/80 bg-card/80 p-0">
@@ -278,7 +320,6 @@ const ChatPage = () => {
                     </Button>
                   </div>
                 </div>
-
                 <div
                   ref={desktopScrollRef}
                   className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-background-secondary/40 px-0 py-0"
@@ -337,7 +378,6 @@ const ChatPage = () => {
                     )}
                   </div>
                 </div>
-
                 <div className="border-t border-border bg-background/80 px-6 pb-3 pt-3">
                   <form
                     onSubmit={(e) => onChatSubmit()(e)}
@@ -395,7 +435,6 @@ const ChatPage = () => {
             </section>
           </div>
         </div>
-
         <div className="flex h-full flex-col lg:hidden">
           <header className="neon-card flex items-center justify-between border-b border-border bg-background px-4 py-3">
             <Button
@@ -437,30 +476,10 @@ const ChatPage = () => {
               </Button>
             </div>
           </header>
-
-          <div className="border-b border-border px-4 py-3">
-            <Button
-              variant="outline"
-              className="neon-card w-full justify-between rounded-full text-left text-sm"
-              asChild
-            >
-              <Link href={PLACEHOLDER_404_PATH}>
-                <span className="truncate">
-                  Active: Balanced Binary Search Trees
-                </span>
-                <Calendar className="size-4" />
-              </Link>
-            </Button>
-          </div>
-
           <div
             ref={mobileScrollRef}
             className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-24"
           >
-            <p className="text-center text-xs font-semibold tracking-wide text-foreground-muted">
-              TODAY, 10:23 AM
-            </p>
-
             {messages.map((message) =>
               message.role === "assistant" ? (
                 <div key={message.id} className="flex items-start gap-3">
@@ -483,13 +502,9 @@ const ChatPage = () => {
                   <Card className="neon-card rounded-3xl rounded-tr-md bg-primary p-0 text-base leading-8 text-primary-foreground shadow-md shadow-primary/25">
                     <p className="px-4 py-4">{message.content}</p>
                   </Card>
-                  <p className="mt-1 text-right text-xs text-foreground-muted">
-                    Read 10:25 AM
-                  </p>
                 </div>
               ),
             )}
-
             {isSending && (
               <div className="flex items-start gap-3">
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
@@ -503,7 +518,6 @@ const ChatPage = () => {
               </div>
             )}
           </div>
-
           <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
             <form
               onSubmit={(e) => onChatSubmit()(e)}
@@ -522,7 +536,7 @@ const ChatPage = () => {
                 <Input
                   value={chatForm.watch("message")}
                   onChange={(e) => chatForm.setValue("message", e.target.value)}
-                  placeholder="Ask a question about Red-Black Trees..."
+                  placeholder="Ask a question..."
                   className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
                 />
                 <Button
@@ -552,4 +566,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default ConversationChatPage;
