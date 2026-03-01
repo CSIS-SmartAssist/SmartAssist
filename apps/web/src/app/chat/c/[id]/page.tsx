@@ -2,28 +2,30 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import {
   Bell,
   Bot,
-  History,
-  ImagePlus,
+  FileDown,
   Menu,
   Mic,
   MoreVertical,
-  Plus,
   Search,
   Send,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
+import { cn } from "@/lib/utils";
 import type { ChatMessage } from "../../_types";
+import { useSpeechToText } from "../../_hooks/useSpeechToText";
+import { exportChatAsPdf } from "../../_utils/exportChat";
 import { useChatSidebar } from "../../layout";
 import {
   chatMessageSchema,
@@ -56,13 +58,54 @@ const ConversationChatPage = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(Boolean(id));
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const speechFinalRef = useRef<string>("");
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!headerMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const el = e.target as Element;
+      if (el.closest?.("[data-chat-header-menu]")) return;
+      setHeaderMenuOpen(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [headerMenuOpen]);
 
   const chatForm = useForm<ChatMessageValues>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: { message: "" },
   });
+
+  const handleSpeechResult = useCallback(
+    (transcript: string, isFinal: boolean) => {
+      if (isFinal) {
+        speechFinalRef.current = (
+          speechFinalRef.current +
+          " " +
+          transcript
+        ).trim();
+        chatForm.setValue("message", speechFinalRef.current);
+      } else {
+        chatForm.setValue(
+          "message",
+          (speechFinalRef.current + " " + transcript).trim(),
+        );
+      }
+    },
+    [chatForm],
+  );
+
+  const { isListening: isSpeechListening, toggle: toggleSpeech, supported: speechSupported } =
+    useSpeechToText({ onResult: handleSpeechResult });
+
+  const handleMicClick = useCallback(() => {
+    if (!speechSupported) return;
+    if (!isSpeechListening) speechFinalRef.current = chatForm.getValues("message") ?? "";
+    toggleSpeech();
+  }, [speechSupported, isSpeechListening, toggleSpeech, chatForm]);
 
   const userName = session?.user?.name?.trim() || "Student";
   const userEmail = session?.user?.email?.trim() || "student@university.edu";
@@ -228,29 +271,9 @@ const ConversationChatPage = () => {
                   <Bot className="size-4" />
                 </div>
                 <p className="text-glow text-lg font-semibold">
-                  Smart Assist AI
+                  Smart Assist
                 </p>
               </div>
-              <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
-                <Link
-                  href="/dashboard"
-                  className="text-foreground hover:text-foreground"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
-                  Library
-                </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
-                  Schedule
-                </Link>
-              </nav>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative w-72">
@@ -283,41 +306,49 @@ const ConversationChatPage = () => {
             <section className="min-h-0 flex-1 p-0">
               <Card className="neon-card flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-none border-border/80 bg-card/80 p-0">
                 <div className="flex items-center justify-between border-b border-border px-5 py-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-accent-green" />
-                      <p className="text-glow text-base font-semibold leading-none">
-                        Smart Assist AI
-                      </p>
-                    </div>
-                    <p className="mt-0.5 text-xs text-foreground-secondary">
-                      Subject Context:{" "}
-                      <span className="text-glow font-medium text-primary">
-                        CS211 Data Structures &amp; Algorithms
-                      </span>
+                  <div className="flex items-center gap-2">
+                    <span className="size-2 rounded-full bg-accent-green" />
+                    <p className="text-glow text-base font-semibold leading-none">
+                      Smart Assist
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div
+                    className="relative"
+                    data-chat-header-menu
+                  >
                     <Button
+                      type="button"
                       size="icon"
                       variant="ghost"
-                      asChild
-                      aria-label="History"
-                    >
-                      <Link href={PLACEHOLDER_404_PATH}>
-                        <History className="size-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      asChild
+                      className="cursor-pointer"
                       aria-label="More options"
+                      aria-expanded={headerMenuOpen}
+                      onClick={() => setHeaderMenuOpen((o) => !o)}
                     >
-                      <Link href={PLACEHOLDER_404_PATH}>
-                        <MoreVertical className="size-4" />
-                      </Link>
+                      <MoreVertical className="size-4" />
                     </Button>
+                    {headerMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          aria-hidden
+                          onClick={() => setHeaderMenuOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full z-20 mt-1 min-w-48 rounded-lg border border-border bg-popover py-1 shadow-md">
+                          <button
+                            type="button"
+                            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                            onClick={() => {
+                              exportChatAsPdf(messages, "Smart Assist Chat");
+                              setHeaderMenuOpen(false);
+                            }}
+                          >
+                            <FileDown className="size-4 shrink-0" />
+                            Export chat as PDF
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div
@@ -384,51 +415,42 @@ const ConversationChatPage = () => {
                     className="flex items-center gap-2"
                   >
                     <Card className="neon-card flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Attach"
-                      >
-                        <Plus className="size-4" />
-                      </Button>
                       <Input
                         {...chatForm.register("message")}
-                        placeholder="Ask about DSA algorithms, complexity, or implementations..."
+                        placeholder="Ask anything"
                         className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
                       />
                       <Button
                         type="button"
                         size="icon"
                         variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Voice"
+                        className={cn(
+                          "size-8 shrink-0 cursor-pointer",
+                          isSpeechListening && "bg-destructive/20 text-destructive animate-pulse",
+                        )}
+                        aria-label={isSpeechListening ? "Stop recording" : "Voice input"}
+                        onClick={speechSupported ? handleMicClick : undefined}
+                        title={speechSupported ? (isSpeechListening ? "Stop recording" : "Voice to text") : "Voice input not supported"}
                       >
-                        <Mic className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Image"
-                      >
-                        <ImagePlus className="size-4" />
+                        {isSpeechListening ? (
+                          <Square className="size-4 fill-current" />
+                        ) : (
+                          <Mic className="size-4" />
+                        )}
                       </Button>
                     </Card>
                     <Button
                       type="submit"
                       size="icon"
                       disabled={isSending}
-                      className="size-10 shrink-0 rounded-2xl"
+                      className="size-10 shrink-0 cursor-pointer rounded-2xl"
                       aria-label="Send"
                     >
                       <Send className="size-4" />
                     </Button>
                   </form>
                   <p className="text-glow mt-1 text-center text-[9px] uppercase tracking-widest text-foreground-muted">
-                    Powered by Smart Assist AI Engine • Academic Context Applied
+                    Powered by Smart Assist • Academic Context Applied
                   </p>
                 </div>
               </Card>
@@ -451,7 +473,7 @@ const ConversationChatPage = () => {
               </div>
               <div>
                 <p className="text-glow text-base font-semibold">
-                  Smart Assist AI
+                  Smart Assist
                 </p>
                 <p className="text-xs text-foreground-secondary">
                   Online • {userId}
@@ -459,11 +481,6 @@ const ConversationChatPage = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" asChild aria-label="History">
-                <Link href={PLACEHOLDER_404_PATH}>
-                  <History className="size-4" />
-                </Link>
-              </Button>
               <Button
                 size="icon"
                 variant="ghost"
@@ -523,37 +540,37 @@ const ConversationChatPage = () => {
               onSubmit={(e) => onChatSubmit()(e)}
               className="flex items-center gap-2"
             >
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8 rounded-full"
-                aria-label="Add"
-              >
-                <Plus className="size-4" />
-              </Button>
               <Card className="neon-card flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
                 <Input
                   value={chatForm.watch("message")}
                   onChange={(e) => chatForm.setValue("message", e.target.value)}
-                  placeholder="Ask a question..."
+                  placeholder="Ask anything"
                   className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
                 />
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="size-8"
-                  aria-label="Voice"
+                  className={cn(
+                    "size-8 cursor-pointer",
+                    isSpeechListening && "bg-destructive/20 text-destructive animate-pulse",
+                  )}
+                  aria-label={isSpeechListening ? "Stop recording" : "Voice input"}
+                  onClick={speechSupported ? handleMicClick : undefined}
+                  title={speechSupported ? (isSpeechListening ? "Stop recording" : "Voice to text") : "Voice input not supported"}
                 >
-                  <Mic className="size-4" />
+                  {isSpeechListening ? (
+                    <Square className="size-4 fill-current" />
+                  ) : (
+                    <Mic className="size-4" />
+                  )}
                 </Button>
               </Card>
               <Button
                 type="submit"
                 size="icon"
                 disabled={isSending}
-                className="size-11 rounded-2xl"
+                className="size-11 cursor-pointer rounded-2xl"
                 aria-label="Send"
               >
                 <Send className="size-4" />

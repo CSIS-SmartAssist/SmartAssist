@@ -12,7 +12,7 @@
     "db:generate": "npm run generate -w @smart-assist/db",
     "db:push": "npm run db:push -w @smart-assist/db",
     "db:studio": "npm run db:studio -w @smart-assist/db",
-    "prepare": "husky"
+    "prepare": "node scripts/prepare.js"
   },
   "devDependencies": {
     "husky": "^9.0.11"
