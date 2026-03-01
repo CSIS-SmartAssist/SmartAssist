@@ -87,10 +87,15 @@ export const PATCH = async (
   }
 
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const title = typeof body?.title === "string" ? body.title.trim().slice(0, TITLE_MAX_LEN) : null;
-    if (!title) {
-      return NextResponse.json({ error: "Title required" }, { status: 400 });
+    const pinned = typeof body?.pinned === "boolean" ? body.pinned : null;
+
+    if (title === null && pinned === null) {
+      return NextResponse.json(
+        { error: "Provide title and/or pinned to update" },
+        { status: 400 }
+      );
     }
 
     const conversation = await prisma.conversation.findFirst({
@@ -100,13 +105,25 @@ export const PATCH = async (
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
 
+    const data: { title?: string; pinned?: boolean; updatedAt: Date } = {
+      updatedAt: new Date(),
+    };
+    if (title !== null) data.title = title;
+    if (pinned !== null) data.pinned = pinned;
+
     const updated = await prisma.conversation.update({
       where: { id },
-      data: { title, updatedAt: new Date() },
+      data,
+    });
+    logger.logApi("response", "/api/chats/[id] PATCH", {
+      id,
+      ...(title !== null && { title: updated.title }),
+      ...(pinned !== null && { pinned: updated.pinned }),
     });
     return NextResponse.json({
       id: updated.id,
       title: updated.title,
+      pinned: updated.pinned,
       updatedAt: updated.updatedAt.getTime(),
     });
   } catch (err) {
@@ -115,6 +132,45 @@ export const PATCH = async (
     });
     return NextResponse.json(
       { error: "Failed to update conversation" },
+      { status: 500 }
+    );
+  }
+};
+
+export const DELETE = async (
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  const auth = await withRouteAuth(request);
+  if (!auth.ok) return auth.response;
+
+  const userId = auth.session.user?.id;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: "Conversation id required" }, { status: 400 });
+  }
+
+  try {
+    const conversation = await prisma.conversation.findFirst({
+      where: { id, userId },
+    });
+    if (!conversation) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    await prisma.conversation.delete({ where: { id } });
+    logger.logApi("response", "/api/chats/[id] DELETE", { id });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    logger.logApi("error", "/api/chats/[id] DELETE", {
+      message: err instanceof Error ? err.message : String(err),
+    });
+    return NextResponse.json(
+      { error: "Failed to delete conversation" },
       { status: 500 }
     );
   }

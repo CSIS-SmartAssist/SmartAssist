@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Monitor, Users } from "lucide-react";
@@ -115,12 +116,13 @@ const DesktopBookingCard = ({
 }) => (
   <Card className="[content-visibility:auto] [contain-intrinsic-size:360px] gap-4 rounded-3xl border-white/70 bg-white p-3 shadow-md">
     <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/70">
-      <img
+      <Image
         src={room.image}
         alt={room.name}
-        loading="lazy"
-        decoding="async"
-        className="h-full w-full object-cover"
+        fill
+        sizes="(max-width: 768px) 100vw, 360px"
+        className="object-cover"
+        unoptimized
       />
       <div className="absolute left-3 top-3 flex items-center gap-2">
         {statusPill(room.status)}
