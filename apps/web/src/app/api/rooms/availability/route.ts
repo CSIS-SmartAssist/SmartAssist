@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRouteAuth } from "@/lib/route-auth";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
+  const auth = await withRouteAuth(request);
+  if (!auth.ok) return auth.response;
+
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const roomId = searchParams.get("roomId");
     const startTime = searchParams.get("startTime");
     const endTime = searchParams.get("endTime");
@@ -27,7 +32,10 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ available: !conflict });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/rooms/availability", {
+      message: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json({ error: "Availability check failed" }, { status: 500 });
   }
 }
