@@ -14,7 +14,7 @@ export const POST = async (
     const { id } = await params;
     const result = await approveBooking(id);
 
-    if (result.error) {
+    if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
     return NextResponse.json({ success: true });

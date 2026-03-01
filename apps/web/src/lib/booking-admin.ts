@@ -1,10 +1,9 @@
 /**
- * Admin booking actions: fetch booking with details, approve (with calendar + email), reject (with email).
+ * Admin booking actions: fetch booking with details, approve/reject with notification emails.
  * Keeps approve/reject route handlers thin and avoids duplicating transaction + side-effect logic.
  */
 
 import { prisma } from "@/lib/prisma";
-import { createCalendarEvent } from "@/lib/calendar";
 import { sendBookingConfirmation } from "@/lib/email";
 import * as logger from "@/lib/logger";
 
@@ -24,6 +23,8 @@ const sendConfirmationSafe = async (params: {
   startTime: Date;
   endTime: Date;
   status: "APPROVED" | "REJECTED";
+  location?: string;
+  reason?: string;
   endpoint: string;
 }) => {
   try {
@@ -59,27 +60,14 @@ export const approveBooking = async (id: string): Promise<{ success: true } | { 
     });
   });
 
-  try {
-    await createCalendarEvent({
-      title: `${booking.room.name} - ${booking.user.name}`,
-      description: booking.reason,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      location: booking.room.location,
-    });
-  } catch (calErr) {
-    logger.logApi("error", "/api/admin/approve", {
-      message: "Calendar event failed",
-      detail: calErr instanceof Error ? calErr.message : String(calErr),
-    });
-  }
-
   await sendConfirmationSafe({
     toEmail: booking.user.email,
     toName: booking.user.name,
     roomName: booking.room.name,
     startTime: booking.startTime,
     endTime: booking.endTime,
+    location: booking.room.location,
+    reason: booking.reason,
     status: "APPROVED",
     endpoint: "/api/admin/approve",
   });
