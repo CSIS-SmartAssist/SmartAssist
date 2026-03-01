@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as logger from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,9 +25,23 @@ import { bookingRequestSchema, type BookingRequestValues } from "@/lib/validatio
 
 type Room = { id: string; name: string };
 
-export const BookingForm = () => {
-  const { data: session } = useSession();
-  const [rooms, setRooms] = useState<Room[]>([]);
+const demoRooms: Room[] = [
+  { id: "dlt1", name: "DLT1" },
+  { id: "dlt2", name: "DLT2" },
+  { id: "lt1", name: "LT1" },
+  { id: "lt2", name: "LT2" },
+  { id: "a401", name: "A401" },
+  { id: "a402", name: "A402" },
+  { id: "c401", name: "C401" },
+  { id: "c402", name: "C402" },
+];
+
+type BookingFormProps = {
+  onSuccess?: () => void;
+};
+
+export const BookingForm = ({ onSuccess }: BookingFormProps = {}) => {
+  const [rooms] = useState<Room[]>(demoRooms);
 
   const form = useForm<BookingRequestValues>({
     resolver: zodResolver(bookingRequestSchema),
@@ -41,48 +53,12 @@ export const BookingForm = () => {
     },
   });
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/rooms");
-        if (!res.ok) return;
-        const data = (await res.json()) as Room[];
-        setRooms(Array.isArray(data) ? data : []);
-      } catch (err) {
-        logger.warn("BookingForm", "Failed to load rooms", err instanceof Error ? err.message : String(err));
-      }
-    };
-    load();
-  }, []);
-
   const onSubmit = async (data: BookingRequestValues) => {
-    const userId = session?.user?.id;
-    if (!userId) {
-      form.setError("root", { message: "You must be signed in to book." });
-      return;
-    }
     try {
-      const res = await fetch("/api/bookings/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          roomId: data.roomId,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          reason: data.reason.trim(),
-        }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        form.setError("root", {
-          message: (json.error as string) ?? "Failed to submit booking.",
-        });
-        return;
-      }
+      await new Promise((resolve) => setTimeout(resolve, 350));
       form.reset();
-    } catch (err) {
-      logger.warn("BookingForm", "Submit failed", err instanceof Error ? err.message : String(err));
+      onSuccess?.();
+    } catch {
       form.setError("root", { message: "Failed to submit booking." });
     }
   };
@@ -171,7 +147,7 @@ export const BookingForm = () => {
         )}
 
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting…" : "Request booking"}
+          {form.formState.isSubmitting ? "Submitting…" : "Request booking (demo)"}
         </Button>
       </form>
     </Form>

@@ -10,7 +10,8 @@ export const POST = async (request: Request) => {
   if (!auth.ok) return auth.response;
 
   try {
-    const { userId, roomId, startTime, endTime, reason } = await request.json();
+    const { roomId, startTime, endTime, reason } = await request.json();
+    const userId = auth.session.user.id;
 
     if (!userId || !roomId || !startTime || !endTime || !reason) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
