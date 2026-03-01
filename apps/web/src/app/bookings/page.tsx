@@ -1,13 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock3, Filter, Monitor, Users } from "lucide-react";
+import { Monitor, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BookingForm } from "@/components/bookings/BookingForm";
 import { CustomRequestDialogButton } from "./_components/CustomRequestDialogButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import * as logger from "@/lib/logger";
 
 const desktopRoomImages = {
   dlt1: "https://www.figma.com/api/mcp/asset/aca01f93-7c0a-420d-9e68-f78d3e6c04aa",
@@ -20,21 +29,9 @@ const desktopRoomImages = {
   c402: "https://www.figma.com/api/mcp/asset/6eb322b0-95ee-4bdb-999e-c4e348915755",
 };
 
-const roomFeatureByName: Record<string, string> = {
-  dlt1: "Projector, AC",
-  dlt2: "Smart Board",
-  lt1: "Full Audio",
-  lt2: "Full Audio",
-  a401: "Whiteboard",
-  a402: "Whiteboard",
-  c401: "Gigabit Net",
-  c402: "Gigabit Net",
-};
-
-const defaultRoomImage = "https://www.figma.com/api/mcp/asset/aca01f93-7c0a-420d-9e68-f78d3e6c04aa";
-
-type DesktopRoomStatus = "vacant" | "occupied" | "ending";
-type DesktopAction = "book" | "waitlist" | "disabled";
+type ApiRoomStatus = "vacant" | "occupied" | "ending";
+type DesktopRoomStatus = "available" | "booked";
+type DesktopAction = "book" | "disabled";
 
 type DesktopRoom = {
   id: string;
@@ -48,115 +45,74 @@ type DesktopRoom = {
   image: string;
 };
 
+type ApiRoom = {
+  id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  amenities: string[];
+  status: ApiRoomStatus;
+};
+
 const resourceTabs = ["All Resources", "D-Block", "A-Block", "C-Block"];
 
-const demoRooms: DesktopRoom[] = [
-  {
-    id: "dlt1",
-    name: "DLT1",
-    block: "D-Block",
-    seats: "60 Seats",
-    feature: "Projector, AC",
-    status: "vacant",
-    action: "book",
-    pick: "CS211 Pick",
-    image: desktopRoomImages.dlt1,
-  },
-  {
-    id: "dlt2",
-    name: "DLT2",
-    block: "D-Block",
-    seats: "60 Seats",
-    feature: "Smart Board",
-    status: "occupied",
-    action: "disabled",
-    image: desktopRoomImages.dlt2,
-  },
-  {
-    id: "lt1",
-    name: "LT1",
-    block: "D-Block",
-    seats: "120 Seats",
-    feature: "Full Audio",
-    status: "ending",
-    action: "waitlist",
-    image: desktopRoomImages.lt1,
-  },
-  {
-    id: "lt2",
-    name: "LT2",
-    block: "D-Block",
-    seats: "120 Seats",
-    feature: "Full Audio",
-    status: "vacant",
-    action: "book",
-    image: desktopRoomImages.lt2,
-  },
-  {
-    id: "a401",
-    name: "A401",
-    block: "A-Block",
-    seats: "40 Seats",
-    feature: "Whiteboard",
-    status: "vacant",
-    action: "book",
-    image: desktopRoomImages.a401,
-  },
-  {
-    id: "a402",
-    name: "A402",
-    block: "A-Block",
-    seats: "40 Seats",
-    feature: "Whiteboard",
-    status: "occupied",
-    action: "disabled",
-    image: desktopRoomImages.a402,
-  },
-  {
-    id: "c401",
-    name: "C401",
-    block: "C-Block",
-    seats: "45 Lab Units",
-    feature: "Gigabit Net",
-    status: "vacant",
-    action: "book",
-    image: desktopRoomImages.c401,
-  },
-  {
-    id: "c402",
-    name: "C402",
-    block: "C-Block",
-    seats: "45 Lab Units",
-    feature: "Gigabit Net",
-    status: "ending",
-    action: "waitlist",
-    image: desktopRoomImages.c402,
-  },
-];
+const roomMatchesTab = (room: DesktopRoom, tab: string) => {
+  if (tab === "All Resources") return true;
+
+  const roomName = room.name.trim().toLowerCase();
+  if (tab === "D-Block") return roomName.startsWith("d");
+  if (tab === "A-Block") return roomName.startsWith("a");
+  if (tab === "C-Block") return roomName.startsWith("c");
+
+  return true;
+};
+
+const getRoomImage = (roomName: string) => {
+  const key = roomName.trim().toLowerCase() as keyof typeof desktopRoomImages;
+  return desktopRoomImages[key] ?? desktopRoomImages.dlt1;
+};
+
+const getRoomFeature = (amenities: string[]) => {
+  if (amenities.length === 0) return "General Purpose";
+  return amenities.join(", ");
+};
+
+const mapApiRoomToDesktopRoom = (room: ApiRoom): DesktopRoom => {
+  const isAvailable = room.status === "vacant";
+  return {
+    id: room.id,
+    name: room.name,
+    block: room.location,
+    seats: `${room.capacity} Seats`,
+    feature: getRoomFeature(room.amenities),
+    status: isAvailable ? "available" : "booked",
+    action: isAvailable ? "book" : "disabled",
+    image: getRoomImage(room.name),
+  };
+};
 
 const statusPill = (status: DesktopRoomStatus) => {
-  if (status === "vacant") {
+  if (status === "available") {
     return (
       <Badge className="rounded-full bg-accent-green/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-        Vacant
-      </Badge>
-    );
-  }
-  if (status === "ending") {
-    return (
-      <Badge className="rounded-full bg-accent-orange/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-        Ending Soon
+        Available
       </Badge>
     );
   }
   return (
     <Badge className="rounded-full bg-accent-red/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-white">
-      Occupied
+      Booked
     </Badge>
   );
 };
 
-const DesktopBookingCard = ({ room }: { room: DesktopRoom }) => (
+const DesktopBookingCard = ({
+  room,
+  onPrimaryAction,
+}: {
+  room: DesktopRoom;
+  onPrimaryAction: (room: DesktopRoom) => void;
+}) => (
   <Card className="[content-visibility:auto] [contain-intrinsic-size:360px] gap-4 rounded-3xl border-white/70 bg-white p-3 shadow-md">
     <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/70">
       <img
@@ -178,7 +134,7 @@ const DesktopBookingCard = ({ room }: { room: DesktopRoom }) => (
 
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <h3 className="text-[28px] font-bold leading-none tracking-[-0.5px] text-foreground">
+        <h3 className="text-[28px] font-bold leading-none tracking-[-0.5px] text-primary">
           {room.name}
         </h3>
         <span className="text-xs font-medium text-foreground-muted">{room.block}</span>
@@ -197,14 +153,13 @@ const DesktopBookingCard = ({ room }: { room: DesktopRoom }) => (
         "h-10 w-full rounded-full text-sm font-bold",
         room.action === "book" &&
           "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(37,99,235,0.25)] hover:bg-primary/90",
-        room.action === "waitlist" &&
-          "border border-primary/25 bg-primary/10 text-primary hover:bg-primary/15",
         room.action === "disabled" &&
           "bg-background-secondary text-foreground-muted hover:bg-background-secondary",
       )}
       disabled={room.action === "disabled"}
+      onClick={() => onPrimaryAction(room)}
     >
-      {room.action === "book" ? "Book Now" : room.action === "waitlist" ? "Waitlist" : "Unavailable"}
+      {room.action === "book" ? "Book Now" : "Booked"}
     </Button>
   </Card>
 );
@@ -212,10 +167,36 @@ const DesktopBookingCard = ({ room }: { room: DesktopRoom }) => (
 const BookingsPage = () => {
   const { data: session } = useSession();
   const firstName = session?.user?.name?.trim().split(" ")[0] ?? "Student";
+  const [activeResourceTab, setActiveResourceTab] = useState("All Resources");
+  const [desktopRooms, setDesktopRooms] = useState<DesktopRoom[]>([]);
+  const [isQuickRequestOpen, setIsQuickRequestOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<DesktopRoom | null>(null);
 
-  const desktopRooms = useMemo<DesktopRoom[]>(() => {
-    return demoRooms;
+  const refreshRooms = async () => {
+    try {
+      const response = await fetch("/api/rooms", { method: "GET" });
+      const payload = (await response.json()) as ApiRoom[] | { error?: string };
+
+      if (!response.ok || !Array.isArray(payload)) {
+        throw new Error((payload as { error?: string }).error ?? "Failed to load rooms");
+      }
+
+      setDesktopRooms(payload.map(mapApiRoomToDesktopRoom));
+    } catch (error) {
+      logger.error("BookingsPage.refreshRooms", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  useEffect(() => {
+    void refreshRooms();
   }, []);
+
+  const filteredRooms = useMemo(
+    () => desktopRooms.filter((room) => roomMatchesTab(room, activeResourceTab)),
+    [desktopRooms, activeResourceTab],
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
@@ -227,49 +208,72 @@ const BookingsPage = () => {
           </p>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
-          <Button variant="outline" className="h-9 flex-1 sm:flex-none">
-            <Clock3 className="size-4" />
-            My History
-          </Button>
           <CustomRequestDialogButton />
         </div>
       </div>
 
       <Card className="gap-4 rounded-2xl border-border/70 bg-card/90 p-4 shadow-md md:p-6">
         <div className="flex flex-wrap items-center gap-2">
-          {resourceTabs.map((tab, index) => (
+          {resourceTabs.map((tab) => (
             <Button
               key={tab}
-              variant={index === 0 ? "default" : "ghost"}
+              variant={activeResourceTab === tab ? "default" : "ghost"}
               className={cn(
                 "h-9 rounded-full px-4 text-sm",
-                index !== 0 && "text-foreground-secondary",
+                activeResourceTab !== tab && "text-foreground-secondary",
               )}
+              onClick={() => setActiveResourceTab(tab)}
             >
               {tab}
             </Button>
           ))}
-
-          <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="icon" className="size-9 rounded-full">
-              <Filter className="size-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="size-9 rounded-full">
-              <Calendar className="size-4" />
-            </Button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {desktopRooms.length === 0 ? (
+          {filteredRooms.length === 0 ? (
             <Card className="col-span-full rounded-2xl border-border/70 bg-card p-6 text-center text-sm text-foreground-secondary">
               No rooms found.
             </Card>
           ) : (
-            desktopRooms.map((room) => <DesktopBookingCard key={room.id} room={room} />)
+            filteredRooms.map((room) => (
+              <DesktopBookingCard
+                key={room.id}
+                room={room}
+                onPrimaryAction={(roomForAction) => {
+                  if (roomForAction.action === "disabled") return;
+                  setSelectedRoom(roomForAction);
+                  setIsQuickRequestOpen(true);
+                }}
+              />
+            ))
           )}
         </div>
       </Card>
+
+      <Dialog
+        open={isQuickRequestOpen}
+        onOpenChange={(open) => {
+          setIsQuickRequestOpen(open);
+          if (!open) setSelectedRoom(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{selectedRoom ? `Book ${selectedRoom.name}` : "Book Room"}</DialogTitle>
+            <DialogDescription>
+              Submit room, start time, end time, and reason.
+            </DialogDescription>
+          </DialogHeader>
+          <BookingForm
+            initialRoomId={selectedRoom?.id}
+            onSuccess={() => {
+              setIsQuickRequestOpen(false);
+              setSelectedRoom(null);
+              void refreshRooms();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       <div className="fixed bottom-6 right-6 z-20 md:hidden">
         <CustomRequestDialogButton compact />

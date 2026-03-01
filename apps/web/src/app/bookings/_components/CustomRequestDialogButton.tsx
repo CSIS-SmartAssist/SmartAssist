@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 type CustomRequestDialogButtonProps = {
   compact?: boolean;
   className?: string;
+  onRequested?: () => void;
 };
 
 export const CustomRequestDialogButton = ({
   compact = false,
   className,
+  onRequested,
 }: CustomRequestDialogButtonProps) => {
   const [open, setOpen] = useState(false);
 
@@ -51,7 +53,12 @@ export const CustomRequestDialogButton = ({
             Submit room, start time, end time, and reason.
           </DialogDescription>
         </DialogHeader>
-        <BookingForm onSuccess={() => setOpen(false)} />
+        <BookingForm
+          onSuccess={() => {
+            setOpen(false);
+            onRequested?.();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

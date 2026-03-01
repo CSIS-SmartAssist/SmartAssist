@@ -4,20 +4,17 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as logger from "@/lib/logger";
 
-type RoomStatus = "vacant" | "occupied" | "ending";
+type RoomStatus = "vacant" | "occupied";
 
 const computeRoomStatus = (
   now: Date,
   bookings: Array<{ startTime: Date; endTime: Date }>,
 ): RoomStatus => {
-  const active = bookings.find((booking) => booking.startTime <= now && booking.endTime > now);
-  if (!active) return "vacant";
-  const msUntilEnd = active.endTime.getTime() - now.getTime();
-  if (msUntilEnd <= 30 * 60 * 1000) return "ending";
-  return "occupied";
+  const active = bookings.some((booking) => booking.startTime <= now && booking.endTime > now);
+  return active ? "occupied" : "vacant";
 };
 
-export async function GET(request: Request) {
+export async function GET() {
   const session = await getServerSession(authConfig);
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -43,6 +40,7 @@ export async function GET(request: Request) {
         prisma.booking.findMany({
           where: {
             status: "APPROVED",
+            startTime: { lte: now },
             endTime: { gt: now },
           },
           select: {

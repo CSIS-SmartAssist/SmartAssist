@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -22,26 +22,19 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { bookingRequestSchema, type BookingRequestValues } from "@/lib/validations/booking";
+import * as logger from "@/lib/logger";
 
 type Room = { id: string; name: string };
 
-const demoRooms: Room[] = [
-  { id: "dlt1", name: "DLT1" },
-  { id: "dlt2", name: "DLT2" },
-  { id: "lt1", name: "LT1" },
-  { id: "lt2", name: "LT2" },
-  { id: "a401", name: "A401" },
-  { id: "a402", name: "A402" },
-  { id: "c401", name: "C401" },
-  { id: "c402", name: "C402" },
-];
-
 type BookingFormProps = {
   onSuccess?: () => void;
+  initialRoomId?: string;
+  initialRoomName?: string;
 };
 
-export const BookingForm = ({ onSuccess }: BookingFormProps = {}) => {
-  const [rooms] = useState<Room[]>(demoRooms);
+export const BookingForm = ({ onSuccess, initialRoomId, initialRoomName }: BookingFormProps = {}) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
   const form = useForm<BookingRequestValues>({
     resolver: zodResolver(bookingRequestSchema),
@@ -53,13 +46,70 @@ export const BookingForm = ({ onSuccess }: BookingFormProps = {}) => {
     },
   });
 
+  useEffect(() => {
+    const loadRooms = async () => {
+      try {
+        setIsLoadingRooms(true);
+        const response = await fetch("/api/rooms", { method: "GET" });
+        const payload = (await response.json()) as Array<{ id: string; name: string }> | { error?: string };
+
+        if (!response.ok || !Array.isArray(payload)) {
+          throw new Error((payload as { error?: string }).error ?? "Failed to load rooms");
+        }
+
+        setRooms(payload.map((room) => ({ id: room.id, name: room.name })));
+      } catch (error) {
+        logger.error("BookingForm.loadRooms", {
+          message: error instanceof Error ? error.message : String(error),
+        });
+        form.setError("root", { message: "Failed to load rooms." });
+      } finally {
+        setIsLoadingRooms(false);
+      }
+    };
+
+    void loadRooms();
+  }, [form]);
+
+  useEffect(() => {
+    if (!initialRoomId) return;
+    if (!rooms.some((room) => room.id === initialRoomId)) return;
+    form.setValue("roomId", initialRoomId, { shouldValidate: true });
+  }, [form, initialRoomId, rooms]);
+
+  useEffect(() => {
+    if (!initialRoomName) return;
+    const matchedRoom = rooms.find(
+      (room) => room.name.trim().toLowerCase() === initialRoomName.trim().toLowerCase(),
+    );
+    if (!matchedRoom) return;
+    form.setValue("roomId", matchedRoom.id, { shouldValidate: true });
+  }, [form, initialRoomName, rooms]);
+
   const onSubmit = async (data: BookingRequestValues) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      form.clearErrors("root");
+      const response = await fetch("/api/bookings/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const payload = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Failed to submit booking.");
+      }
+
       form.reset();
       onSuccess?.();
-    } catch {
-      form.setError("root", { message: "Failed to submit booking." });
+    } catch (error) {
+      logger.error("BookingForm.submit", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      form.setError("root", {
+        message: error instanceof Error ? error.message : "Failed to submit booking.",
+      });
     }
   };
 
@@ -82,7 +132,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps = {}) => {
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a room" />
+                    <SelectValue placeholder={isLoadingRooms ? "Loading rooms..." : "Select a room"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -147,7 +197,7 @@ export const BookingForm = ({ onSuccess }: BookingFormProps = {}) => {
         )}
 
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting…" : "Request booking (demo)"}
+          {form.formState.isSubmitting ? "Submitting…" : "Request booking"}
         </Button>
       </form>
     </Form>
