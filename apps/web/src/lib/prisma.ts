@@ -1,6 +1,3 @@
-// Prisma client singleton (Vedant) — use in API routes
-// Uses @prisma/adapter-pg for Prisma 7 (driver adapter)
-
 import { PrismaClient } from "@smart-assist/db";
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as logger from "@/lib/logger";

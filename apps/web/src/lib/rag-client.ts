@@ -1,4 +1,4 @@
-// Internal fetch wrapper to FastAPI — all calls use x-internal-secret (Mit)
+// Internal fetch wrapper to FastAPI — all calls use x-internal-secret 
 
 import * as logger from "@/lib/logger";
 

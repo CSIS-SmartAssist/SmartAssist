@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRouteAuth } from "@/lib/route-auth";
 import { prisma } from "@/lib/prisma";
+import * as logger from "@/lib/logger";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
+  const auth = await withRouteAuth(request, { requireAdmin: true });
+  if (!auth.ok) return auth.response;
+
   try {
-    const formData = await req.formData();
+    const formData = await request.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
@@ -56,7 +61,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(document, { status: 201 });
-  } catch {
+  } catch (err) {
+    logger.logApi("error", "/api/admin/upload", {
+      message: err instanceof Error ? err.message : String(err),
+    });
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

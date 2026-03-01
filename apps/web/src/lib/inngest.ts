@@ -1,4 +1,4 @@
-// Inngest client + cron function def (Mit) — 3 AM daily Drive sync
+// Inngest client + cron function def — 3 AM daily Drive sync
 
 import { Inngest } from "inngest";
 import { triggerRagSync } from "./rag-client";
