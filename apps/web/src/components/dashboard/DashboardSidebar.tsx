@@ -235,7 +235,7 @@ export const DashboardSidebar = ({
             <button
               type="button"
               onClick={() => setChatsSectionExpanded((e) => !e)}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted transition-colors hover:bg-background-tertiary"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted transition-colors hover:bg-background-tertiary"
               aria-expanded={chatsSectionExpanded}
             >
               Your chats
@@ -437,7 +437,7 @@ export const DashboardSidebar = ({
           <button
             type="button"
             onClick={() => setSupportExpanded((e) => !e)}
-            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted transition-colors hover:bg-background-tertiary"
+            className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted transition-colors hover:bg-background-tertiary"
             aria-expanded={supportOpen}
           >
             Support

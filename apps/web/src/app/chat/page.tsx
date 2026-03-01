@@ -11,11 +11,9 @@ import {
   Bot,
   Calendar,
   History,
-  ImagePlus,
   Menu,
   Mic,
   MoreVertical,
-  Plus,
   Search,
   Send,
 } from "lucide-react";
@@ -344,44 +342,26 @@ const ChatPage = () => {
                     className="flex items-center gap-2"
                   >
                     <Card className="neon-card flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Attach"
-                      >
-                        <Plus className="size-4" />
-                      </Button>
                       <Input
                         {...chatForm.register("message")}
-                        placeholder="Ask about DSA algorithms, complexity, or implementations..."
+                        placeholder="Ask anything"
                         className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
                       />
                       <Button
                         type="button"
                         size="icon"
                         variant="ghost"
-                        className="size-8 shrink-0"
+                        className="size-8 shrink-0 cursor-pointer"
                         aria-label="Voice"
                       >
                         <Mic className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Image"
-                      >
-                        <ImagePlus className="size-4" />
                       </Button>
                     </Card>
                     <Button
                       type="submit"
                       size="icon"
                       disabled={isSending}
-                      className="size-10 shrink-0 rounded-2xl"
+                      className="size-10 shrink-0 cursor-pointer rounded-2xl"
                       aria-label="Send"
                     >
                       <Send className="size-4" />
@@ -509,27 +489,18 @@ const ChatPage = () => {
               onSubmit={(e) => onChatSubmit()(e)}
               className="flex items-center gap-2"
             >
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8 rounded-full"
-                aria-label="Add"
-              >
-                <Plus className="size-4" />
-              </Button>
               <Card className="neon-card flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
                 <Input
                   value={chatForm.watch("message")}
                   onChange={(e) => chatForm.setValue("message", e.target.value)}
-                  placeholder="Ask a question about Red-Black Trees..."
+                  placeholder="Ask anything"
                   className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
                 />
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="size-8"
+                  className="size-8 cursor-pointer"
                   aria-label="Voice"
                 >
                   <Mic className="size-4" />
@@ -539,7 +510,7 @@ const ChatPage = () => {
                 type="submit"
                 size="icon"
                 disabled={isSending}
-                className="size-11 rounded-2xl"
+                className="size-11 cursor-pointer rounded-2xl"
                 aria-label="Send"
               >
                 <Send className="size-4" />
