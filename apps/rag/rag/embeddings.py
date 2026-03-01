@@ -1,8 +1,7 @@
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
-# Loads once when the module is imported — stays in memory
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
 
 def generate_embeddings(texts: list[str]) -> list[list[float]]:
-    embeddings = model.encode(texts, show_progress_bar=False)
-    return embeddings.tolist()
+    embeddings = list(model.embed(texts))
+    return [e.tolist() for e in embeddings]
