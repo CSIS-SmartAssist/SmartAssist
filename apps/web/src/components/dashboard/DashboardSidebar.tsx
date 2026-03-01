@@ -25,6 +25,25 @@ import * as logger from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import type { DashboardUser } from "@/app/dashboard/_types";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -82,8 +101,21 @@ export const DashboardSidebar = ({
     useState<boolean>(true);
   const [openMenuChatId, setOpenMenuChatId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [deleteDialogChat, setDeleteDialogChat] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [renameDialogChat, setRenameDialogChat] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [renameInputValue, setRenameInputValue] = useState<string>("");
   const menuContainerRef = useRef<HTMLDivElement | null>(null);
   const isChatPage = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  useEffect(() => {
+    if (renameDialogChat) setRenameInputValue(renameDialogChat.title);
+  }, [renameDialogChat]);
 
   useEffect(() => {
     if (!openMenuChatId) return;
@@ -311,40 +343,12 @@ export const DashboardSidebar = ({
                                           type="button"
                                           disabled={actionLoading}
                                           className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
-                                          onClick={async () => {
+                                          onClick={() => {
                                             setOpenMenuChatId(null);
-                                            const newTitle = window.prompt(
-                                              "Rename chat",
-                                              chat.title,
-                                            );
-                                            if (
-                                              newTitle == null ||
-                                              !newTitle.trim()
-                                            )
-                                              return;
-                                            setActionLoading(true);
-                                            try {
-                                              await chatList.onRenameChat(
-                                                chat.id,
-                                                newTitle.trim(),
-                                              );
-                                              logger.info("chat", "Renamed", chat.id, newTitle.trim());
-                                              toast.success(
-                                                "Chat renamed successfully.",
-                                              );
-                                            } catch (err) {
-                                              logger.warn(
-                                                "chat",
-                                                "Failed to rename",
-                                                chat.id,
-                                                err instanceof Error ? err.message : String(err),
-                                              );
-                                              toast.error(
-                                                "Failed to rename chat.",
-                                              );
-                                            } finally {
-                                              setActionLoading(false);
-                                            }
+                                            setRenameDialogChat({
+                                              id: chat.id,
+                                              title: chat.title,
+                                            });
                                           }}
                                         >
                                           <PenLine
@@ -396,34 +400,12 @@ export const DashboardSidebar = ({
                                           type="button"
                                           disabled={actionLoading}
                                           className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
-                                          onClick={async () => {
+                                          onClick={() => {
                                             setOpenMenuChatId(null);
-                                            if (
-                                              !window.confirm(
-                                                "Delete this chat? This cannot be undone.",
-                                              )
-                                            )
-                                              return;
-                                            setActionLoading(true);
-                                            try {
-                                              await chatList.onDeleteChat(
-                                                chat.id,
-                                              );
-                                              logger.info("chat", "Deleted", chat.id);
-                                              toast.error("Chat deleted.");
-                                            } catch (err) {
-                                              logger.warn(
-                                                "chat",
-                                                "Failed to delete",
-                                                chat.id,
-                                                err instanceof Error ? err.message : String(err),
-                                              );
-                                              toast.error(
-                                                "Failed to delete chat.",
-                                              );
-                                            } finally {
-                                              setActionLoading(false);
-                                            }
+                                            setDeleteDialogChat({
+                                              id: chat.id,
+                                              title: chat.title,
+                                            });
                                           }}
                                         >
                                           <Trash2
@@ -514,6 +496,174 @@ export const DashboardSidebar = ({
           </div>
         </div>
       </div>
+
+      {/* Delete chat confirmation */}
+      <AlertDialog
+        open={!!deleteDialogChat}
+        onOpenChange={(open) => {
+          if (!open) setDeleteDialogChat(null);
+        }}
+      >
+        <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              chat
+              {deleteDialogChat?.title ? (
+                <>
+                  {" "}
+                  &ldquo;{deleteDialogChat.title.length > 40
+                    ? `${deleteDialogChat.title.slice(0, 40)}...`
+                    : deleteDialogChat.title}
+                  &rdquo;
+                </>
+              ) : null}
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cursor-pointer">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              className="cursor-pointer"
+              disabled={actionLoading}
+              onClick={async () => {
+                if (!deleteDialogChat || !chatList) return;
+                setActionLoading(true);
+                try {
+                  await chatList.onDeleteChat(deleteDialogChat.id);
+                  logger.info("chat", "Deleted", deleteDialogChat.id);
+                  toast.error("Chat deleted.");
+                  setDeleteDialogChat(null);
+                } catch (err) {
+                  logger.warn(
+                    "chat",
+                    "Failed to delete",
+                    deleteDialogChat.id,
+                    err instanceof Error ? err.message : String(err),
+                  );
+                  toast.error("Failed to delete chat.");
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+            >
+              {actionLoading ? (
+                <Loader2 className="size-5 animate-spin" aria-hidden />
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Rename chat dialog */}
+      <Dialog
+        open={!!renameDialogChat}
+        onOpenChange={(open) => {
+          if (!open) setRenameDialogChat(null);
+        }}
+      >
+        <DialogContent
+          className="max-w-[calc(100vw-2rem)] sm:max-w-md"
+          showCloseButton={true}
+        >
+          <DialogHeader>
+            <DialogTitle>Rename chat</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this chat. It will appear in your chat list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="rename-chat-input">Chat name</Label>
+              <Input
+                id="rename-chat-input"
+                value={renameInputValue}
+                onChange={(e) => setRenameInputValue(e.target.value)}
+                placeholder="e.g. Project ideas"
+                maxLength={CHAT_TITLE_MAX_LEN}
+                className="w-full"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const trimmed = renameInputValue.trim();
+                    if (trimmed && renameDialogChat && chatList) {
+                      setActionLoading(true);
+                      chatList
+                        .onRenameChat(renameDialogChat.id, trimmed)
+                        .then(() => {
+                          logger.info("chat", "Renamed", renameDialogChat.id, trimmed);
+                          toast.success("Chat renamed successfully.");
+                          setRenameDialogChat(null);
+                        })
+                        .catch((err) => {
+                          logger.warn(
+                            "chat",
+                            "Failed to rename",
+                            renameDialogChat.id,
+                            err instanceof Error ? err.message : String(err),
+                          );
+                          toast.error("Failed to rename chat.");
+                        })
+                        .finally(() => setActionLoading(false));
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setRenameDialogChat(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="cursor-pointer"
+              disabled={
+                actionLoading || !renameInputValue.trim() || !renameDialogChat
+              }
+              onClick={async () => {
+                if (!renameDialogChat || !chatList) return;
+                const trimmed = renameInputValue.trim();
+                if (!trimmed) return;
+                setActionLoading(true);
+                try {
+                  await chatList.onRenameChat(renameDialogChat.id, trimmed);
+                  logger.info("chat", "Renamed", renameDialogChat.id, trimmed);
+                  toast.success("Chat renamed successfully.");
+                  setRenameDialogChat(null);
+                } catch (err) {
+                  logger.warn(
+                    "chat",
+                    "Failed to rename",
+                    renameDialogChat.id,
+                    err instanceof Error ? err.message : String(err),
+                  );
+                  toast.error("Failed to rename chat.");
+                } finally {
+                  setActionLoading(false);
+                }
+              }}
+            >
+              {actionLoading ? (
+                <Loader2 className="size-5 animate-spin" aria-hidden />
+              ) : (
+                "Rename"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 
