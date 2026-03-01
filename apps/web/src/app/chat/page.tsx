@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import * as logger from "@/lib/logger";
 import type { ChatMessage } from "./_types";
 import { useChatSidebar } from "./layout";
 import {
@@ -51,7 +52,7 @@ const PLACEHOLDER_404_PATH = "/__coming-soon__";
 const ChatPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
-  const { setSidebarOpen } = useChatSidebar();
+  const { setSidebarOpen, addOrUpdateChat } = useChatSidebar();
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState<boolean>(false);
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
@@ -113,6 +114,7 @@ const ChatPage = () => {
         answer?: string;
         error?: string;
         conversationId?: string;
+        title?: string;
       };
 
       const answer = payload.answer;
@@ -121,6 +123,13 @@ const ChatPage = () => {
       }
 
       if (payload.conversationId) {
+        const now = Date.now();
+        addOrUpdateChat({
+          id: payload.conversationId,
+          title: (payload.title ?? text.slice(0, 40)) || "New chat",
+          createdAt: now,
+          updatedAt: now,
+        });
         router.push(`/chat/c/${payload.conversationId}`);
         return;
       }
@@ -132,7 +141,8 @@ const ChatPage = () => {
         content: answer,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
+    } catch (err) {
+      logger.logApi("error", "/api/chat (client)", { message: err instanceof Error ? err.message : String(err) });
       setMessages((prev) => [
         ...prev,
         {

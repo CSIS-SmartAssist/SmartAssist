@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as logger from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -47,8 +48,8 @@ export const BookingForm = () => {
         if (!res.ok) return;
         const data = (await res.json()) as Room[];
         setRooms(Array.isArray(data) ? data : []);
-      } catch {
-        // ignore
+      } catch (err) {
+        logger.warn("BookingForm", "Failed to load rooms", err instanceof Error ? err.message : String(err));
       }
     };
     load();
@@ -80,7 +81,8 @@ export const BookingForm = () => {
         return;
       }
       form.reset();
-    } catch {
+    } catch (err) {
+      logger.warn("BookingForm", "Submit failed", err instanceof Error ? err.message : String(err));
       form.setError("root", { message: "Failed to submit booking." });
     }
   };

@@ -11,8 +11,15 @@ export const driveSyncCron = inngestClient.createFunction(
   { cron: "0 3 * * *" },
   async () => {
     logger.logEvent("inngest:daily-drive-sync", { triggeredAt: new Date().toISOString() });
-    await triggerRagSync();
-    return { ok: true };
+    try {
+      await triggerRagSync();
+      return { ok: true };
+    } catch (err) {
+      logger.logApi("error", "inngest/daily-drive-sync", {
+        message: err instanceof Error ? err.message : String(err),
+      });
+      throw err;
+    }
   }
 );
 

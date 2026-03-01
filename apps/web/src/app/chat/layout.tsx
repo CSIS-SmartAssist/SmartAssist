@@ -1,22 +1,24 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import type { DashboardUser } from "@/app/dashboard/_types";
+import * as logger from "@/lib/logger";
 import type { ChatListItem } from "./_types";
 
 type ChatSidebarContextValue = {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  addOrUpdateChat: (chat: ChatListItem) => void;
 };
 
 const ChatSidebarContext = createContext<ChatSidebarContextValue | null>(null);
 
 export const useChatSidebar = () => {
   const ctx = useContext(ChatSidebarContext);
-  return ctx ?? { sidebarOpen: false, setSidebarOpen: () => {} };
+  return ctx ?? { sidebarOpen: false, setSidebarOpen: () => {}, addOrUpdateChat: () => {} };
 };
 
 export default function ChatLayout({
@@ -44,6 +46,8 @@ export default function ChatLayout({
       if (!res.ok) return;
       const data = (await res.json()) as { chats?: ChatListItem[] };
       if (Array.isArray(data.chats)) setChats(data.chats);
+    } catch (err) {
+      logger.logApi("error", "/api/chats (client)", { message: err instanceof Error ? err.message : String(err) });
     } finally {
       if (showLoading) setChatsLoading(false);
     }
@@ -64,6 +68,24 @@ export default function ChatLayout({
       }
     : null;
 
+  const addOrUpdateChat = useCallback((chat: ChatListItem) => {
+    setChats((prev) => {
+      const idx = prev.findIndex((c) => c.id === chat.id);
+      const next = [...prev];
+      if (idx >= 0) {
+        next[idx] = { ...next[idx], ...chat, updatedAt: chat.updatedAt ?? Date.now() };
+      } else {
+        next.unshift({
+          id: chat.id,
+          title: chat.title,
+          createdAt: chat.createdAt ?? Date.now(),
+          updatedAt: chat.updatedAt ?? Date.now(),
+        });
+      }
+      return next;
+    });
+  }, []);
+
   const sortedChats = [...chats].sort(
     (a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt),
   );
@@ -82,7 +104,7 @@ export default function ChatLayout({
 
   return (
     <ChatSidebarContext.Provider
-      value={{ sidebarOpen, setSidebarOpen }}
+      value={{ sidebarOpen, setSidebarOpen, addOrUpdateChat }}
     >
       <div className="relative flex h-screen min-h-0 w-full overflow-hidden">
         <DashboardSidebar

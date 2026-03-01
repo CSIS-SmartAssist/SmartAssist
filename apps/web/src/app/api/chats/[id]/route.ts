@@ -66,3 +66,56 @@ export const GET = async (
     );
   }
 };
+
+const TITLE_MAX_LEN = 200;
+
+export const PATCH = async (
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  const auth = await withRouteAuth(request);
+  if (!auth.ok) return auth.response;
+
+  const userId = auth.session.user?.id;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: "Conversation id required" }, { status: 400 });
+  }
+
+  try {
+    const body = await request.json();
+    const title = typeof body?.title === "string" ? body.title.trim().slice(0, TITLE_MAX_LEN) : null;
+    if (!title) {
+      return NextResponse.json({ error: "Title required" }, { status: 400 });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { id, userId },
+    });
+    if (!conversation) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.conversation.update({
+      where: { id },
+      data: { title, updatedAt: new Date() },
+    });
+    return NextResponse.json({
+      id: updated.id,
+      title: updated.title,
+      updatedAt: updated.updatedAt.getTime(),
+    });
+  } catch (err) {
+    logger.logApi("error", "/api/chats/[id] PATCH", {
+      message: err instanceof Error ? err.message : String(err),
+    });
+    return NextResponse.json(
+      { error: "Failed to update conversation" },
+      { status: 500 }
+    );
+  }
+};

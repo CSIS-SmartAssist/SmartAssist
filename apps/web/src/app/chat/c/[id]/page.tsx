@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import * as logger from "@/lib/logger";
 import type { ChatMessage } from "../../_types";
 import { useChatSidebar } from "../../layout";
 import {
@@ -51,7 +52,7 @@ const ConversationChatPage = () => {
   const params = useParams();
   const id = typeof params.id === "string" ? params.id : null;
   const { data: session } = useSession();
-  const { setSidebarOpen } = useChatSidebar();
+  const { setSidebarOpen, addOrUpdateChat } = useChatSidebar();
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(Boolean(id));
@@ -86,17 +87,44 @@ const ConversationChatPage = () => {
         }
         const data = (await res.json()) as {
           id: string;
+          title: string;
+          createdAt: number;
+          updatedAt: number;
           messages: ChatMessage[];
         };
         setMessages(
           data.messages?.length ? data.messages : getInitialMessages(),
         );
+        if (data.title === "New Chat" && data.messages?.length) {
+          const firstUser = data.messages.find((m) => m.role === "user");
+          const newTitle = firstUser
+            ? firstUser.content.trim().slice(0, 40) || "New chat"
+            : "New chat";
+          fetch(`/api/chats/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: newTitle }),
+          })
+            .then((r) => r.json())
+            .then((patched: { title?: string; updatedAt?: number }) => {
+              if (patched.title)
+                addOrUpdateChat({
+                  id,
+                  title: patched.title,
+                  createdAt: data.createdAt,
+                  updatedAt: patched.updatedAt ?? data.updatedAt,
+                });
+            })
+            .catch((err) => {
+              logger.warn("chat", "Failed to update conversation title", id, err instanceof Error ? err.message : String(err));
+            });
+        }
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [id]);
+  }, [id, addOrUpdateChat]);
 
   useEffect(() => {
     if (desktopScrollRef.current) {
@@ -141,7 +169,8 @@ const ConversationChatPage = () => {
         content: answer,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
+    } catch (err) {
+      logger.logApi("error", "/api/chat (client)", { conversationId: id, message: err instanceof Error ? err.message : String(err) });
       setMessages((prev) => [
         ...prev,
         {

@@ -89,7 +89,10 @@ export const POST = async (request: Request) => {
       });
       answer = "I couldn't fetch a response right now. Please try again.";
     }
-    const title = titleOverride || titleFromMessage(message);
+    const title =
+      titleOverride && titleOverride.trim() !== "New Chat"
+        ? titleOverride.trim().slice(0, 200)
+        : titleFromMessage(message);
     const conversation = await prisma.conversation.create({
       data: {
         userId,
@@ -105,6 +108,7 @@ export const POST = async (request: Request) => {
     return NextResponse.json({
       answer,
       conversationId: conversation.id,
+      title: conversation.title,
     });
   } catch (err) {
     logger.logApi("error", "/api/chat", {

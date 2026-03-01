@@ -16,6 +16,7 @@ import {
   PenLine,
   Search,
 } from "lucide-react";
+import * as logger from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import type { DashboardUser } from "@/app/dashboard/_types";
 import { Input } from "@/components/ui/input";
@@ -84,7 +85,8 @@ export const DashboardSidebar = ({
     try {
       await signOut({ callbackUrl: "/", redirect: true });
       // On success we redirect; spinner stays until page unmounts
-    } catch {
+    } catch (err) {
+      logger.logAuth("error", { phase: "signOut", message: err instanceof Error ? err.message : String(err) });
       setSigningOut(false);
     }
   };
