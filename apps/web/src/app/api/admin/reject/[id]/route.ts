@@ -1,12 +1,10 @@
-// POST /api/admin/reject/[id] — reject booking (Vedant)
-
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { protect } from "@/lib/arcjet";
 import { requireAdmin } from "@/lib/middleware";
 import { prisma } from "@/lib/prisma";
-import * as logger from "@/lib/logger";
+import { sendBookingConfirmation } from "@/lib/email";
 
 export const POST = async (
   request: Request,
@@ -23,15 +21,35 @@ export const POST = async (
 
   try {
     const { id } = await params;
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: { user: true, room: true },
+    });
+
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
     await prisma.booking.update({
       where: { id },
       data: { status: "REJECTED" },
     });
 
-    logger.logDb("booking.reject", { bookingId: id });
+    try {
+      await sendBookingConfirmation({
+        toEmail: booking.user.email,
+        toName: booking.user.name,
+        roomName: booking.room.name,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: "REJECTED",
+      });
+    } catch (emailErr) {
+      console.error("Email failed:", emailErr);
+    }
+
     return NextResponse.json({ success: true });
-  } catch (err) {
-    logger.logApi("error", "/api/admin/reject", { message: err instanceof Error ? err.message : String(err) });
+  } catch {
     return NextResponse.json({ error: "Failed to reject booking" }, { status: 500 });
   }
 };
