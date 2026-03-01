@@ -13,9 +13,12 @@ import {
   Settings,
   LogOut,
   Loader2,
+  PenLine,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardUser } from "@/app/dashboard/_types";
+import { Input } from "@/components/ui/input";
 
 const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -29,11 +32,32 @@ const supportNav = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
+const CHAT_TITLE_MAX_LEN = 32;
+
+export type ChatListItemSidebar = {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt?: number;
+};
+
+export type ChatListSidebarProps = {
+  chats: ChatListItemSidebar[];
+  currentChatId: string | null;
+  onNewChat: () => void;
+  onSelectChat: (id: string) => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  loading?: boolean;
+};
+
 interface DashboardSidebarProps {
   user: DashboardUser | null;
   open?: boolean;
   onClose?: () => void;
   className?: string;
+  /** When on /chat, pass this to show New chat + Your chats in the sidebar */
+  chatList?: ChatListSidebarProps | null;
 }
 
 export const DashboardSidebar = ({
@@ -41,10 +65,12 @@ export const DashboardSidebar = ({
   open = true,
   onClose,
   className,
+  chatList = null,
 }: DashboardSidebarProps) => {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState<boolean>(false);
   const isChatPage = pathname === "/chat" || pathname.startsWith("/chat/");
+  const showChatList = isChatPage && chatList;
 
   const isItemActive = (href: string) => {
     if (href === "/dashboard") {
@@ -118,7 +144,80 @@ export const DashboardSidebar = ({
           );
         })}
 
-        <div className="pt-6">
+        {showChatList && (
+          <div className="pt-6">
+            <Link
+              href="/chat"
+              onClick={onClose}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
+            >
+              <PenLine className="size-5 shrink-0" aria-hidden />
+              New chat
+            </Link>
+            <div className="relative mt-2">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground-muted" />
+              <Input
+                type="search"
+                placeholder="Search chats"
+                value={chatList.searchQuery}
+                onChange={(e) => chatList.onSearchChange(e.target.value)}
+                className="h-9 rounded-lg border-border/80 bg-background-secondary/60 pl-9 text-sm"
+                aria-label="Search chats"
+              />
+            </div>
+            <p className="mb-2 mt-3 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+              Your chats
+            </p>
+            <ul className="max-h-48 space-y-0.5 overflow-y-auto px-2 pb-2">
+              {chatList.loading ? (
+                <li className="px-2 py-4 text-center text-sm text-foreground-muted">
+                  Loading…
+                </li>
+              ) : (() => {
+                const q = chatList.searchQuery.trim().toLowerCase();
+                const filtered = q
+                  ? chatList.chats.filter((c) =>
+                      c.title.toLowerCase().includes(q),
+                    )
+                  : chatList.chats;
+                return filtered.length === 0 ? (
+                  <li className="px-2 py-4 text-center text-sm text-foreground-muted">
+                    {q ? "No chats match" : "No past chats yet"}
+                  </li>
+                ) : (
+                  filtered.map((chat) => {
+                    const isActive = chatList.currentChatId === chat.id;
+                    const title =
+                      chat.title.length > CHAT_TITLE_MAX_LEN
+                        ? `${chat.title.slice(0, CHAT_TITLE_MAX_LEN)}...`
+                        : chat.title;
+                    return (
+                      <li key={chat.id}>
+                        <Link
+                          href={`/chat/c/${chat.id}`}
+                          onClick={onClose}
+                          className={cn(
+                            "block w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent/50",
+                            isActive
+                              ? "bg-accent/80 text-foreground"
+                              : "text-foreground-secondary",
+                          )}
+                          title={chat.title}
+                        >
+                          <span className="block truncate">{title}</span>
+                        </Link>
+                      </li>
+                    );
+                  })
+                );
+              })()}
+            </ul>
+          </div>
+        )}
+      </nav>
+
+      <div className="shrink-0 border-t border-sidebar-border">
+        <div className="p-4">
           <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
             Support
           </p>
@@ -137,44 +236,7 @@ export const DashboardSidebar = ({
             );
           })}
         </div>
-
-        {isChatPage && (
-          <>
-            <div className="pt-6">
-              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-                Course Context
-              </p>
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-lg border border-primary px-3 py-2 text-left text-sm font-medium text-primary"
-                >
-                  CS211 DSA
-                </button>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground-secondary transition-colors hover:bg-background-tertiary hover:text-foreground"
-                >
-                  CS241 MUP
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-6">
-              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-                Recent Topics
-              </p>
-              <ul className="space-y-2 px-3 text-sm text-foreground-secondary">
-                <li>• AVL Rotations</li>
-                <li>• B-Tree Indexing</li>
-                <li>• Graph Traversals</li>
-              </ul>
-            </div>
-          </>
-        )}
-      </nav>
-
-      <div className="border-t border-sidebar-border p-4">
+        <div className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <div
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary"
@@ -203,6 +265,7 @@ export const DashboardSidebar = ({
               <LogOut className="size-5" aria-hidden />
             )}
           </button>
+        </div>
         </div>
       </div>
     </>

@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import * as logger from "@/lib/logger";
 import { Loader2 } from "lucide-react";
@@ -17,6 +19,9 @@ import {
 import { FeatureCard } from "./_components/feature-card";
 import { CourseBadge } from "./_components/course-badge";
 import LoginPageFallback from "./_components/LoginPageFallback";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { adminKeySchema, type AdminKeyValues } from "@/lib/validations/auth";
 
 const ALLOWED_DOMAIN = "goa.bits-pilani.ac.in";
 
@@ -25,9 +30,13 @@ type LoginMode = "student" | "admin";
 const LoginPageContent = () => {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<LoginMode>("student");
-  const [adminKey, setAdminKey] = useState<string>("");
   const [localError, setLocalError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const form = useForm<AdminKeyValues>({
+    resolver: zodResolver(adminKeySchema),
+    defaultValues: { adminKey: "" },
+  });
 
   const urlError = searchParams.get("error")
     ? decodeURIComponent(searchParams.get("error") ?? "")
@@ -58,22 +67,18 @@ const LoginPageContent = () => {
     }
   };
 
-  const handleAdminSignIn = async () => {
+  const handleAdminSignInWithKey = async (data: AdminKeyValues) => {
     setLocalError(null);
-    if (!adminKey.trim()) {
-      setLocalError("Enter the admin key to continue.");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/verify-admin-key", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: adminKey.trim() }),
+        body: JSON.stringify({ key: data.adminKey.trim() }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        setLocalError(data.message ?? "Invalid admin key.");
+      const resData = await res.json().catch(() => ({}));
+      if (!res.ok || !resData.ok) {
+        setLocalError(resData.message ?? "Invalid admin key.");
         setLoading(false);
         return;
       }
@@ -176,6 +181,7 @@ const LoginPageContent = () => {
                   onClick={() => {
                     setMode("student");
                     setLocalError(null);
+                    form.reset();
                   }}
                   className={`cursor-pointer rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
                     mode === "student"
@@ -208,30 +214,38 @@ const LoginPageContent = () => {
                 : "Enter admin key, then sign in with Google."}
             </p>
 
-            {/* Admin key field */}
+            {/* Admin key field (RHF + zod) */}
             {mode === "admin" && (
-              <div className="mt-5">
-                <label
-                  htmlFor="admin-key"
-                  className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-foreground-secondary"
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleAdminSignInWithKey)}
+                  className="mt-5"
                 >
-                  Secret Key
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted">
-                    <KeyIcon />
-                  </span>
-                  <input
-                    id="admin-key"
-                    type="password"
-                    value={adminKey}
-                    onChange={(e) => setAdminKey(e.target.value)}
-                    placeholder="Enter admin key"
-                    className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-border-focus/20"
-                    autoComplete="off"
+                  <FormField
+                    control={form.control}
+                    name="adminKey"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted">
+                              <KeyIcon />
+                            </span>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="Enter admin key"
+                              className="pl-10"
+                              autoComplete="off"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-accent-red" />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              </div>
+                </form>
+              </Form>
             )}
 
             {/* Error */}
@@ -249,34 +263,55 @@ const LoginPageContent = () => {
               <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
                 Institutional Login
               </p>
-              <button
-                type="button"
-                onClick={
-                  mode === "student" ? handleStudentSignIn : handleAdminSignIn
-                }
-                disabled={loading}
-                className="cursor-pointer flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-background-secondary hover:shadow-[0_0_20px_-4px_rgba(124,58,237,0.2)] disabled:opacity-60 dark:border-border-strong dark:hover:border-accent-teal/40 dark:hover:shadow-[0_0_20px_-4px_rgba(45,212,191,0.25)]"
-              >
-                {loading ? (
-                  <>
-                    <Loader2
-                      className="h-5 w-5 animate-spin text-foreground-secondary"
-                      aria-hidden
-                    />
-                    <span className="text-foreground-secondary">
-                      Signing in…
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <GoogleColorIcon className="h-5 w-5" />
-                    <span>
-                      Continue with Google
-                      {mode === "admin" ? " (Admin)" : ""}
-                    </span>
-                  </>
-                )}
-              </button>
+              {mode === "admin" ? (
+                <button
+                  type="button"
+                  onClick={form.handleSubmit(handleAdminSignInWithKey)}
+                  disabled={loading}
+                  className="cursor-pointer flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-background-secondary hover:shadow-[0_0_20px_-4px_rgba(124,58,237,0.2)] disabled:opacity-60 dark:border-border-strong dark:hover:border-accent-teal/40 dark:hover:shadow-[0_0_20px_-4px_rgba(45,212,191,0.25)]"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2
+                        className="h-5 w-5 animate-spin text-foreground-secondary"
+                        aria-hidden
+                      />
+                      <span className="text-foreground-secondary">
+                        Signing in…
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleColorIcon className="h-5 w-5" />
+                      <span>Continue with Google (Admin)</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleStudentSignIn}
+                  disabled={loading}
+                  className="cursor-pointer flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-background-secondary hover:shadow-[0_0_20px_-4px_rgba(124,58,237,0.2)] disabled:opacity-60 dark:border-border-strong dark:hover:border-accent-teal/40 dark:hover:shadow-[0_0_20px_-4px_rgba(45,212,191,0.25)]"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2
+                        className="h-5 w-5 animate-spin text-foreground-secondary"
+                        aria-hidden
+                      />
+                      <span className="text-foreground-secondary">
+                        Signing in…
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleColorIcon className="h-5 w-5" />
+                      <span>Continue with Google</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <p className="mt-5 text-center text-[11px] leading-relaxed text-foreground-muted">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +9,6 @@ import { useSession } from "next-auth/react";
 import {
   Bell,
   Bot,
-  Calendar,
   History,
   ImagePlus,
   Menu,
@@ -23,8 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import type { ChatMessage } from "./_types";
-import { useChatSidebar } from "./layout";
+import type { ChatMessage } from "../../_types";
+import { useChatSidebar } from "../../layout";
 import {
   chatMessageSchema,
   type ChatMessageValues,
@@ -48,12 +47,14 @@ const getInitialMessages = (): ChatMessage[] => [
 
 const PLACEHOLDER_404_PATH = "/__coming-soon__";
 
-const ChatPage = () => {
-  const router = useRouter();
+const ConversationChatPage = () => {
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : null;
   const { data: session } = useSession();
   const { setSidebarOpen } = useChatSidebar();
   const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
-  const [isSending, setIsSending] = useState<boolean>(false);
+  const [isSending, setIsSending] = useState(false);
+  const [loading, setLoading] = useState(Boolean(id));
   const desktopScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -74,6 +75,30 @@ const ChatPage = () => {
   const userAuthor = userName.toUpperCase();
 
   useEffect(() => {
+    if (!id) return;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/chats/${id}`);
+        if (!res.ok) {
+          setMessages(getInitialMessages());
+          return;
+        }
+        const data = (await res.json()) as {
+          id: string;
+          messages: ChatMessage[];
+        };
+        setMessages(
+          data.messages?.length ? data.messages : getInitialMessages(),
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
+
+  useEffect(() => {
     if (desktopScrollRef.current) {
       desktopScrollRef.current.scrollTop =
         desktopScrollRef.current.scrollHeight;
@@ -85,7 +110,7 @@ const ChatPage = () => {
 
   const sendMessage = async (rawValue: string) => {
     const text = rawValue.trim();
-    if (!text || isSending) return;
+    if (!text || isSending || !id) return;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -94,37 +119,21 @@ const ChatPage = () => {
       content: text,
     };
     setMessages((prev) => [...prev, userMsg]);
-
     setIsSending(true);
     try {
-      const body: { message: string; conversationId?: string; title?: string } =
-        {
-          message: text,
-          title: "New Chat",
-        };
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ message: text, conversationId: id }),
       });
-
       const payload = (await response.json()) as {
         answer?: string;
         error?: string;
-        conversationId?: string;
       };
-
       const answer = payload.answer;
       if (!response.ok || typeof answer !== "string") {
         throw new Error(payload.error ?? "Failed to get response");
       }
-
-      if (payload.conversationId) {
-        router.push(`/chat/c/${payload.conversationId}`);
-        return;
-      }
-
       const assistantMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         role: "assistant",
@@ -139,7 +148,7 @@ const ChatPage = () => {
           id: `e-${Date.now()}`,
           role: "assistant",
           author: "SMART ASSIST AI",
-          content: "I couldn’t fetch a response right now. Please try again.",
+          content: "I couldn't fetch a response right now. Please try again.",
         },
       ]);
     } finally {
@@ -155,8 +164,24 @@ const ChatPage = () => {
       sendMessage(message);
     });
 
+  if (!id) {
+    return (
+      <div className="flex h-full items-center justify-center text-foreground-muted">
+        Invalid conversation
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-foreground-muted">
+        Loading…
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-screen overflow-hidden bg-background text-foreground">
+    <div className="relative h-full overflow-hidden bg-background text-foreground">
       <div
         className="glow-orb glow-orb-primary -top-32 right-[-10%] lg:right-[5%]"
         aria-hidden
@@ -165,7 +190,6 @@ const ChatPage = () => {
         className="glow-orb glow-orb-secondary -bottom-24 -left-[8%] lg:left-[2%]"
         aria-hidden
       />
-
       <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col">
         <div className="hidden h-full lg:flex lg:flex-col">
           <header className="neon-card flex h-16 items-center justify-between border-b border-border/80 bg-background/90 px-8 backdrop-blur">
@@ -179,22 +203,13 @@ const ChatPage = () => {
                 </p>
               </div>
               <nav className="flex items-center gap-6 text-sm text-foreground-secondary">
-                <Link
-                  href="/dashboard"
-                  className="text-foreground hover:text-foreground"
-                >
+                <Link href="/dashboard" className="text-foreground hover:text-foreground">
                   Dashboard
                 </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
+                <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">
                   Library
                 </Link>
-                <Link
-                  href={PLACEHOLDER_404_PATH}
-                  className="hover:text-foreground"
-                >
+                <Link href={PLACEHOLDER_404_PATH} className="hover:text-foreground">
                   Schedule
                 </Link>
               </nav>
@@ -208,13 +223,7 @@ const ChatPage = () => {
                 />
               </div>
               <div className="flex items-center gap-1.5">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full"
-                  asChild
-                  aria-label="Notifications"
-                >
+                <Button size="icon" variant="ghost" className="rounded-full" asChild aria-label="Notifications">
                   <Link href={PLACEHOLDER_404_PATH} className="relative">
                     <Bell className="size-4" />
                     <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-accent-red text-[10px] font-bold text-white">
@@ -226,7 +235,6 @@ const ChatPage = () => {
               </div>
             </div>
           </header>
-
           <div className="flex min-h-0 flex-1">
             <section className="min-h-0 flex-1 p-0">
               <Card className="neon-card flex h-full min-h-0 flex-col gap-0 overflow-hidden rounded-none border-border/80 bg-card/80 p-0">
@@ -246,29 +254,18 @@ const ChatPage = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      asChild
-                      aria-label="History"
-                    >
+                    <Button size="icon" variant="ghost" asChild aria-label="History">
                       <Link href={PLACEHOLDER_404_PATH}>
                         <History className="size-4" />
                       </Link>
                     </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      asChild
-                      aria-label="More options"
-                    >
+                    <Button size="icon" variant="ghost" asChild aria-label="More options">
                       <Link href={PLACEHOLDER_404_PATH}>
                         <MoreVertical className="size-4" />
                       </Link>
                     </Button>
                   </div>
                 </div>
-
                 <div
                   ref={desktopScrollRef}
                   className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-background-secondary/40 px-0 py-0"
@@ -276,10 +273,7 @@ const ChatPage = () => {
                   <div className="space-y-5 px-6 py-6">
                     {messages.map((message) =>
                       message.role === "assistant" ? (
-                        <div
-                          key={message.id}
-                          className="flex max-w-5xl items-start gap-3"
-                        >
+                        <div key={message.id} className="flex max-w-5xl items-start gap-3">
                           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                             <Bot className="size-4" />
                           </div>
@@ -295,10 +289,7 @@ const ChatPage = () => {
                           </div>
                         </div>
                       ) : (
-                        <div
-                          key={message.id}
-                          className="ml-auto flex max-w-4xl items-start gap-3"
-                        >
+                        <div key={message.id} className="ml-auto flex max-w-4xl items-start gap-3">
                           <div className="flex-1 space-y-1">
                             <p className="pr-1 text-right text-[11px] font-semibold text-foreground-muted">
                               {userAuthor}
@@ -327,20 +318,10 @@ const ChatPage = () => {
                     )}
                   </div>
                 </div>
-
                 <div className="border-t border-border bg-background/80 px-6 pb-3 pt-3">
-                  <form
-                    onSubmit={(e) => onChatSubmit()(e)}
-                    className="flex items-center gap-2"
-                  >
+                  <form onSubmit={(e) => onChatSubmit()(e)} className="flex items-center gap-2">
                     <Card className="neon-card flex h-10 flex-1 flex-row items-center rounded-2xl border-border/80 bg-card px-1 py-0">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Attach"
-                      >
+                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Attach">
                         <Plus className="size-4" />
                       </Button>
                       <Input
@@ -348,22 +329,10 @@ const ChatPage = () => {
                         placeholder="Ask about DSA algorithms, complexity, or implementations..."
                         className="h-8 flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0"
                       />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Voice"
-                      >
+                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Voice">
                         <Mic className="size-4" />
                       </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 shrink-0"
-                        aria-label="Image"
-                      >
+                      <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0" aria-label="Image">
                         <ImagePlus className="size-4" />
                       </Button>
                     </Card>
@@ -385,15 +354,9 @@ const ChatPage = () => {
             </section>
           </div>
         </div>
-
         <div className="flex h-full flex-col lg:hidden">
           <header className="neon-card flex items-center justify-between border-b border-border bg-background px-4 py-3">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Menu"
-            >
+            <Button size="icon" variant="ghost" onClick={() => setSidebarOpen(true)} aria-label="Menu">
               <Menu className="size-5" />
             </Button>
             <div className="flex items-center gap-2">
@@ -401,12 +364,8 @@ const ChatPage = () => {
                 <Bot className="size-4" />
               </div>
               <div>
-                <p className="text-glow text-base font-semibold">
-                  Smart Assist AI
-                </p>
-                <p className="text-xs text-foreground-secondary">
-                  Online • {userId}
-                </p>
+                <p className="text-glow text-base font-semibold">Smart Assist AI</p>
+                <p className="text-xs text-foreground-secondary">Online • {userId}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -415,42 +374,17 @@ const ChatPage = () => {
                   <History className="size-4" />
                 </Link>
               </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                asChild
-                aria-label="Notifications"
-              >
+              <Button size="icon" variant="ghost" asChild aria-label="Notifications">
                 <Link href={PLACEHOLDER_404_PATH}>
                   <Bell className="size-4" />
                 </Link>
               </Button>
             </div>
           </header>
-
-          <div className="border-b border-border px-4 py-3">
-            <Button
-              variant="outline"
-              className="neon-card w-full justify-between rounded-full text-left text-sm"
-              asChild
-            >
-              <Link href={PLACEHOLDER_404_PATH}>
-                <span className="truncate">
-                  Active: Balanced Binary Search Trees
-                </span>
-                <Calendar className="size-4" />
-              </Link>
-            </Button>
-          </div>
-
           <div
             ref={mobileScrollRef}
             className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-background-secondary/30 px-4 py-4 pb-24"
           >
-            <p className="text-center text-xs font-semibold tracking-wide text-foreground-muted">
-              TODAY, 10:23 AM
-            </p>
-
             {messages.map((message) =>
               message.role === "assistant" ? (
                 <div key={message.id} className="flex items-start gap-3">
@@ -458,13 +392,9 @@ const ChatPage = () => {
                     <Bot className="size-4" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <p className="text-glow text-sm font-semibold">
-                      Smart Assist
-                    </p>
+                    <p className="text-glow text-sm font-semibold">Smart Assist</p>
                     <Card className="neon-card rounded-3xl rounded-tl-md p-0">
-                      <p className="px-4 py-4 text-base leading-8">
-                        {message.content}
-                      </p>
+                      <p className="px-4 py-4 text-base leading-8">{message.content}</p>
                     </Card>
                   </div>
                 </div>
@@ -473,55 +403,33 @@ const ChatPage = () => {
                   <Card className="neon-card rounded-3xl rounded-tr-md bg-primary p-0 text-base leading-8 text-primary-foreground shadow-md shadow-primary/25">
                     <p className="px-4 py-4">{message.content}</p>
                   </Card>
-                  <p className="mt-1 text-right text-xs text-foreground-muted">
-                    Read 10:25 AM
-                  </p>
                 </div>
               ),
             )}
-
             {isSending && (
               <div className="flex items-start gap-3">
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
                   <Bot className="size-4" />
                 </div>
                 <Card className="neon-card rounded-3xl rounded-tl-md p-0">
-                  <p className="px-4 py-3 text-sm text-foreground-secondary">
-                    Thinking...
-                  </p>
+                  <p className="px-4 py-3 text-sm text-foreground-secondary">Thinking...</p>
                 </Card>
               </div>
             )}
           </div>
-
           <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-3 pb-2.5 pt-2">
-            <form
-              onSubmit={(e) => onChatSubmit()(e)}
-              className="flex items-center gap-2"
-            >
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8 rounded-full"
-                aria-label="Add"
-              >
+            <form onSubmit={(e) => onChatSubmit()(e)} className="flex items-center gap-2">
+              <Button type="button" size="icon" variant="ghost" className="size-8 rounded-full" aria-label="Add">
                 <Plus className="size-4" />
               </Button>
               <Card className="neon-card flex h-11 flex-1 flex-row items-center rounded-2xl p-0">
                 <Input
                   value={chatForm.watch("message")}
                   onChange={(e) => chatForm.setValue("message", e.target.value)}
-                  placeholder="Ask a question about Red-Black Trees..."
+                  placeholder="Ask a question..."
                   className="h-8 border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0"
                 />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="size-8"
-                  aria-label="Voice"
-                >
+                <Button type="button" size="icon" variant="ghost" className="size-8" aria-label="Voice">
                   <Mic className="size-4" />
                 </Button>
               </Card>
@@ -542,4 +450,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default ConversationChatPage;

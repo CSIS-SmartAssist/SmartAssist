@@ -43,7 +43,7 @@ export const DashboardHeader = ({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [mobileSearchOpen, closeMobileSearch]);
 
-  const handleMobileSearchSubmit = (e: React.FormEvent) => {
+  const handleMobileSearchSubmit = (e: { preventDefault(): void }) => {
     e.preventDefault();
     // TODO: navigate to search results or trigger search
     closeMobileSearch();
