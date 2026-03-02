@@ -87,7 +87,13 @@ export const PATCH = async (
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await request.json().catch((err) => {
+      logger.logApi("error", "/api/chats/[id] PATCH", {
+        message: "Request body JSON parse failed",
+        detail: err instanceof Error ? err.message : String(err),
+      });
+      return {};
+    });
     const title = typeof body?.title === "string" ? body.title.trim().slice(0, TITLE_MAX_LEN) : null;
     const pinned = typeof body?.pinned === "boolean" ? body.pinned : null;
 

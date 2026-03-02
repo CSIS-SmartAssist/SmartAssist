@@ -147,7 +147,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!ragResponse.ok) {
-      const ragErrorText = await ragResponse.text().catch(() => "");
+      const ragErrorText = await ragResponse.text().catch((err) => {
+        logger.logApi("error", "/api/admin/upload", {
+          message: "RAG error response body text() failed",
+          detail: err instanceof Error ? err.message : String(err),
+        });
+        return "";
+      });
       const errorMessage = `RAG service error (${ragResponse.status})${ragErrorText ? `: ${ragErrorText.slice(0, MAX_REMOTE_ERROR_PREVIEW)}` : ""}`;
 
       await prisma.document.update({

@@ -34,7 +34,13 @@ export async function POST(request: Request) {
     });
 
     if (!ragResponse.ok) {
-      const ragErrorText = await ragResponse.text().catch(() => "");
+      const ragErrorText = await ragResponse.text().catch((err) => {
+        logger.logApi("error", "/api/admin/drive-sync", {
+          message: "RAG response body text() failed",
+          detail: err instanceof Error ? err.message : String(err),
+        });
+        return "";
+      });
       const errorMessage = `RAG sync failed (${ragResponse.status})${ragErrorText ? `: ${ragErrorText.slice(0, 200)}` : ""}`;
       logger.logApi("error", "/api/admin/drive-sync", {
         status: ragResponse.status,
