@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 import { protect } from "@/lib/arcjet";
 import { PENDING_ADMIN_COOKIE } from "@/lib/auth-constants";
 import * as logger from "@/lib/logger";
+import { isProduction } from "@/lib/environment";
+import { getAdminSecretKey } from "@/lib/env";
 
 const COOKIE_MAX_AGE = 60 * 5; // 5 minutes
 
@@ -16,7 +18,7 @@ export const POST = async (request: Request) => {
     const body = await request.json();
     const key = typeof body?.key === "string" ? body.key.trim() : "";
 
-    const secret = process.env.ADMIN_SECRET_KEY;
+    const secret = getAdminSecretKey();
     if (!secret) {
       return NextResponse.json(
         { ok: false, message: "Admin sign-in is not configured." },
@@ -34,7 +36,7 @@ export const POST = async (request: Request) => {
     const cookieStore = await cookies();
     cookieStore.set(PENDING_ADMIN_COOKIE, "1", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction(),
       sameSite: "lax",
       maxAge: COOKIE_MAX_AGE,
       path: "/",
