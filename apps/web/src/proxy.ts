@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import * as logger from "@/lib/logger";
+import { getNextAuthSecret } from "@/lib/env";
 
 const ADMIN_PATHS = ["/admin"];
 const STATIC_EXT = /\.(ico|png|jpg|jpeg|gif|svg|webp|woff2?)$/i;
@@ -30,7 +31,7 @@ export async function proxy(request: NextRequest) {
     // All other routes (e.g. /chat, /dashboard, /bookings) require auth
     const token = await getToken({
       req: request,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: getNextAuthSecret(),
     });
 
     if (!token) {
