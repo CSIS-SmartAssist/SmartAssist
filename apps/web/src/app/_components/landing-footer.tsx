@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { SmartAssistLogo, TwitterIcon, GitHubIcon } from "./landing-icons";
+import { SmartAssistLogo, GitHubIcon } from "./landing-icons";
+
+const GITHUB_URL = "https://github.com/CSIS-SmartAssist/SmartAssist";
 
 const LINK_GROUPS = [
   {
@@ -30,9 +32,7 @@ const LINK_GROUPS = [
 export const LandingFooter = () => (
   <footer className="border-t border-border bg-background-secondary px-5 pt-12 pb-6 sm:px-8 lg:px-16">
     <div className="mx-auto max-w-7xl">
-      {/* Top grid */}
       <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Brand column */}
         <div>
           <Link href="/" className="mb-3 flex items-center gap-2">
             <SmartAssistLogo />
@@ -46,7 +46,6 @@ export const LandingFooter = () => (
           </p>
         </div>
 
-        {/* Link columns */}
         {LINK_GROUPS.map((group) => (
           <div key={group.heading}>
             <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -68,7 +67,6 @@ export const LandingFooter = () => (
         ))}
       </div>
 
-      {/* Bottom bar */}
       <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
         <p className="text-xs text-foreground-muted">
           &copy; {new Date().getFullYear()} Campus Simplified. All rights
@@ -76,14 +74,9 @@ export const LandingFooter = () => (
         </p>
         <div className="flex items-center gap-4">
           <a
-            href="#"
-            aria-label="Twitter"
-            className="text-foreground-muted transition-colors hover:text-foreground"
-          >
-            <TwitterIcon />
-          </a>
-          <a
-            href="#"
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="GitHub"
             className="text-foreground-muted transition-colors hover:text-foreground"
           >
