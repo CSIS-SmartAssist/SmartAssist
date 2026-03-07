@@ -12,11 +12,9 @@ export const ThemeToggle = ({
   showLabel = false,
 }: ThemeToggleProps) => {
   const { setTheme, resolvedTheme } = useTheme();
-  const mounted = resolvedTheme !== undefined;
   const isDark = resolvedTheme === "dark";
 
   const toggle = () => {
-    if (!mounted) return;
     setTheme(isDark ? "light" : "dark");
   };
 
@@ -25,8 +23,7 @@ export const ThemeToggle = ({
       type="button"
       onClick={toggle}
       className={`cursor-pointer inline-flex items-center self-start rounded-full border border-border bg-background-secondary px-4 py-2 text-foreground transition-opacity hover:opacity-90 active:opacity-70 ${className}`}
-      disabled={!mounted}
-      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      aria-label={resolvedTheme ? `Switch to ${isDark ? "light" : "dark"} mode` : "Toggle theme"}
     >
       <span className="text-xl leading-none" suppressHydrationWarning>
         {isDark ? "☀️" : "🌙"}
