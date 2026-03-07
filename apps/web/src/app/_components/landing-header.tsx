@@ -16,9 +16,12 @@ export const LandingHeader = () => (
     </Link>
 
     <nav className="flex shrink-0 items-center gap-2 sm:gap-3">
-      <span className="hidden cursor-pointer text-sm text-foreground-secondary transition-colors hover:text-foreground hover:underline hover:underline-offset-2 hover:decoration-primary dark:hover:decoration-accent-teal sm:inline">
+      <Link
+        href="/help"
+        className="hidden text-sm text-foreground-secondary transition-colors hover:text-foreground hover:underline hover:underline-offset-2 hover:decoration-primary dark:hover:decoration-accent-teal sm:inline"
+      >
         Help
-      </span>
+      </Link>
       <Link
         href="/login"
         className="min-h-9 min-w-9 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background-secondary dark:border-border-strong dark:hover:bg-accent-teal/40 sm:px-4 sm:py-1.5"

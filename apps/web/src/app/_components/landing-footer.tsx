@@ -14,7 +14,7 @@ const LINK_GROUPS = [
     heading: "Support",
     links: [
       { label: "Documentation", href: "#" },
-      { label: "Help Center", href: "#" },
+      { label: "Help Center", href: "/help" },
       { label: "Contact Us", href: "#" },
     ],
   },
