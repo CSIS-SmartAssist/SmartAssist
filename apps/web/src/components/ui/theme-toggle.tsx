@@ -32,7 +32,10 @@ export const ThemeToggle = ({
         {isDark ? "☀️" : "🌙"}
       </span>
       {showLabel && (
-        <span className="ml-1 text-sm font-medium text-foreground" suppressHydrationWarning>
+        <span
+          className="ml-1 hidden text-sm font-medium text-foreground sm:inline"
+          suppressHydrationWarning
+        >
           {isDark ? "Light" : "Dark"}
         </span>
       )}
