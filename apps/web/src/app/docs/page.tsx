@@ -12,7 +12,7 @@ const DocsChoicePage = () => (
           aria-label="Back to home"
         >
           <ArrowLeft className="size-4 shrink-0" />
-          Back to home
+          Go back
         </Link>
 
         <div className="mb-12 text-center">
