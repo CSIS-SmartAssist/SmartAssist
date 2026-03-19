@@ -48,7 +48,7 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border bg-background/90 px-8 py-4">
-        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex size-10 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10">
               <School className="size-5 text-primary" />
@@ -68,7 +68,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="mx-auto grid w-full max-w-[1280px] gap-6 px-8 py-8 lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto grid w-full max-w-7xl gap-6 px-8 py-8 lg:grid-cols-[260px_1fr]">
         <Card className="h-fit rounded-3xl border border-border bg-card p-4">
           <p className="mb-3 text-xs tracking-[0.2em] text-foreground-muted">MENU</p>
           <div className="space-y-2">
