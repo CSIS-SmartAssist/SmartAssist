@@ -4,13 +4,14 @@ import { getToken } from "next-auth/jwt";
 import * as logger from "@/lib/logger";
 
 const ADMIN_PATHS = ["/admin"];
+const PUBLIC_PATHS = ["/", "/login", "/help", "/docs", "/terms", "/privacy"];
 const STATIC_EXT = /\.(ico|png|jpg|jpeg|gif|svg|webp|woff2?)$/i;
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Public pages — no auth required
-  if (path === "/" || path === "/login" || path.startsWith("/login")) {
+  if (PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) {
     return NextResponse.next();
   }
   // Static assets (images, fonts) — allow so landing page loads
