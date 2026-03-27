@@ -120,7 +120,7 @@ npm install
 
 ### 2. Environment variables
 
-Create **`.env`** at the **repo root**. Copy from `.env.example` and fill in at least:
+Create **`.env`** at the **repo root** (copy from `.env.example`) and fill in at least:
 
 ```env
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
@@ -128,12 +128,16 @@ DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 
 For Neon: use the connection string from the dashboard (pooler or direct). Include `?sslmode=require` (and `&channel_binding=require` if needed).
 
-**Next.js** loads `.env` from its app directory. Either:
+**How env is loaded**
 
-- Copy (or symlink) root `.env` to **`apps/web/.env`**, or  
-- Create `apps/web/.env` with the same variables the web app needs (`DATABASE_URL`, `NEXTAUTH_*`, `RAG_SERVICE_URL`, `INTERNAL_SECRET`, etc.).
+- **Local dev** (from repo root: `npm run dev:web`): Next.js loads **repo root** `.env` and `.env.local` (via `next.config`). Use **`.env.local`** at repo root for local-only overrides (e.g. `NEXTAUTH_URL=http://localhost:3000`, `RAG_SERVICE_URL=http://localhost:8000`); do not commit `.env.local`.
+- **Build from apps/web** (e.g. Vercel with Root = `apps/web`): Next.js loads **repo root** `.env` / `.env.local` first, then **`apps/web`** `.env` / `.env.local`, so app-specific or production values in the app dir override.
 
-See `.env.example` for the full list (Auth, RAG, Inngest, Google, SMTP, Arcjet).
+**Local development:** Keep `NEXTAUTH_URL=http://localhost:3000` and `RAG_SERVICE_URL=http://localhost:8000` in `.env` or `.env.local`. In Google Cloud Console, add redirect URI `http://localhost:3000/api/auth/callback/google` for OAuth.
+
+**Production (e.g. Vercel):** Set `NEXTAUTH_URL` and `RAG_SERVICE_URL` to your deployed URLs in the host’s environment. Add the production redirect URI in Google Cloud Console.
+
+See **`.env.example`** for the full variable list (Auth, RAG, Inngest, Google, SMTP, Arcjet).
 
 ### 3. Database (Neon)
 

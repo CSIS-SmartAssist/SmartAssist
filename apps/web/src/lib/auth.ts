@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth-db";
 import { PENDING_ADMIN_COOKIE } from "@/lib/auth-constants";
 import * as logger from "@/lib/logger";
+import { getGoogleClientId, getGoogleClientSecret, getNextAuthSecret } from "@/lib/env";
 
 const DOMAIN = "goa.bits-pilani.ac.in";
 const OAUTH_PASSWORD_PLACEHOLDER = "oauth"; // OAuth-only users; DB requires non-empty string
@@ -21,8 +22,8 @@ const OAUTH_PASSWORD_PLACEHOLDER = "oauth"; // OAuth-only users; DB requires non
 export const authConfig: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      clientId: getGoogleClientId(),
+      clientSecret: getGoogleClientSecret(),
       authorization: {
         params: {
           hd: DOMAIN,
@@ -96,6 +97,6 @@ export const authConfig: NextAuthOptions = {
     },
   },
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: getNextAuthSecret(),
   pages: { signIn: "/login", error: "/login" },
 };

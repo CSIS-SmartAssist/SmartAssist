@@ -4,7 +4,9 @@
  * No-op in production for debug/info levels; errors always log.
  */
 
-const isDev = process.env.NODE_ENV !== "production";
+import { isDevelopment } from "@/lib/environment";
+
+const isDev = isDevelopment();
 
 const toMessage = (...args: unknown[]): string => {
   return args

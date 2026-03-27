@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 import { withRouteAuth } from "@/lib/route-auth";
 import * as logger from "@/lib/logger";
+import { getRagServiceUrl, getInternalSecret } from "@/lib/env";
 
-const DEFAULT_RAG_URL = "http://localhost:8000";
 const FETCH_TIMEOUT_MS = 45_000;
 
-const normalizeBaseUrl = (url: string) => url.replace(/\/+$/, "");
-
 const getRagConfig = () => {
-  const ragBaseUrl = normalizeBaseUrl(process.env.RAG_SERVICE_URL ?? DEFAULT_RAG_URL);
-  const internalSecret = process.env.INTERNAL_SECRET?.trim();
-
+  const ragBaseUrl = getRagServiceUrl();
+  const internalSecret = getInternalSecret();
   if (!internalSecret) {
     throw new Error("INTERNAL_SECRET is not configured");
   }
-
   return { ragBaseUrl, internalSecret };
 };
 
