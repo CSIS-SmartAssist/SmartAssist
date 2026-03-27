@@ -94,19 +94,19 @@ export async function sendBookingConfirmation({
   const attachments =
     status === "APPROVED"
       ? [
-          {
-            filename: "booking.ics",
-            content: buildApprovedBookingIcs({
-              toEmail,
-              roomName,
-              startTime,
-              endTime,
-              location,
-              description: reason,
-            }),
-            contentType: "text/calendar; charset=utf-8; method=REQUEST",
-          },
-        ]
+        {
+          filename: "booking.ics",
+          content: buildApprovedBookingIcs({
+            toEmail,
+            roomName,
+            startTime,
+            endTime,
+            location,
+            description: reason,
+          }),
+          contentType: "text/calendar; charset=utf-8; method=REQUEST",
+        },
+      ]
       : undefined;
 
   try {
