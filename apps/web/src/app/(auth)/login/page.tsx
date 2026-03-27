@@ -19,7 +19,13 @@ import {
 import { FeatureCard } from "./_components/feature-card";
 import { CourseBadge } from "./_components/course-badge";
 import LoginPageFallback from "./_components/LoginPageFallback";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { adminKeySchema, type AdminKeyValues } from "@/lib/validations/auth";
 
@@ -31,10 +37,12 @@ const LoginPageContent = () => {
   const searchParams = useSearchParams();
   const rawUrlError = searchParams.get("error") ?? "";
   const isAdminMustUseAdminLogin = rawUrlError === "AdminMustUseAdminLogin";
-  const isStudentMustUseStudentLogin = rawUrlError === "StudentMustUseStudentLogin";
-  const isOAuthError = rawUrlError === "OAuthSignin" || rawUrlError === "OAuthCallback";
+  const isStudentMustUseStudentLogin =
+    rawUrlError === "StudentMustUseStudentLogin";
+  const isOAuthError =
+    rawUrlError === "OAuthSignin" || rawUrlError === "OAuthCallback";
   const [mode, setMode] = useState<LoginMode>(() =>
-    isAdminMustUseAdminLogin ? "admin" : "student"
+    isAdminMustUseAdminLogin ? "admin" : "student",
   );
   const [localError, setLocalError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -45,14 +53,13 @@ const LoginPageContent = () => {
   });
 
   const urlError = rawUrlError ? decodeURIComponent(rawUrlError) : null;
-  const errorMessage =
-    isAdminMustUseAdminLogin
-      ? "You are an admin. Please sign in using the Admin option with your admin key."
-      : isStudentMustUseStudentLogin
-        ? "You are registered as a student. Please sign in using the Student option."
-        : isOAuthError
-          ? "Sign-in timed out. Please check your network and try again, or use a different connection (e.g. mobile hotspot)."
-          : urlError;
+  const errorMessage = isAdminMustUseAdminLogin
+    ? "You are an admin. Please sign in using the Admin option with your admin key."
+    : isStudentMustUseStudentLogin
+      ? "You are registered as a student. Please sign in using the Student option."
+      : isOAuthError
+        ? "Sign-in timed out. Please check your network and try again, or use a different connection (e.g. mobile hotspot)."
+        : urlError;
   const error = localError ?? errorMessage;
 
   const rawCallbackUrl = searchParams.get("callbackUrl");
@@ -335,6 +342,23 @@ const LoginPageContent = () => {
 
             <p className="mt-5 text-center text-[11px] leading-relaxed text-foreground-muted">
               Only <strong>@{ALLOWED_DOMAIN}</strong> accounts are accepted.
+            </p>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-foreground-muted">
+              By continuing to sign in, you accept our{" "}
+              <Link
+                href="/terms"
+                className="font-medium text-foreground-secondary underline underline-offset-2 hover:text-foreground"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                className="font-medium text-foreground-secondary underline underline-offset-2 hover:text-foreground"
+              >
+                Privacy Policy
+              </Link>
+              .
             </p>
           </div>
         </div>
