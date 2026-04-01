@@ -95,7 +95,14 @@ const LoginPageContent = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: data.adminKey.trim() }),
       });
-      const resData = await res.json().catch(() => ({}));
+      const resData = await res.json().catch((err) => {
+        logger.logAuth("error", {
+          phase: "adminSignIn",
+          message: "Admin key verification response JSON parse failed",
+          detail: err instanceof Error ? err.message : String(err),
+        });
+        return {};
+      });
       if (!res.ok || !resData.ok) {
         setLocalError(resData.message ?? "Invalid admin key.");
         setLoading(false);
